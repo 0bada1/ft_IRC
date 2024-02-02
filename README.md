@@ -63,4 +63,4 @@ Socket Programming is a method to connect two nodes over a network to establish 
 - https://www.scaler.com/topics/socket-programming-in-c/ (Socket Programming)
 
 
-### Created by: [Abdul Aziz](github.com/Ael-masr), Mutasem, [Obada Outabachi](github.com/0bada1)
+### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), Mutasem, [Obada Outabachi](https://www.github.com/0bada1)
