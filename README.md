@@ -11,7 +11,7 @@ Socket Programming is a method to connect two nodes over a network to establish 
 
 
 ### There are 2 programs that should be made
-![image](https://github.com/0bada1/ft_IRC/assets/95438648/37c49f36-5cc8-404c-925c-4c803208159d)
+![image](https://github.com/0bada1/ft_IRC/assets/95438648/37c49f36-5cc8-404c-925c-4c803208159d) <br>
 Note that using poll is more efficient than a simple read/write method. Read and write takes up a lot of resources, so using poll is required.
 
 ## 1) Building The Server
