@@ -21,10 +21,6 @@ Note that using poll is more efficient than a simple read/write method. Read and
 ### D. Listen
 ### E. Accept
 
-## 2) Building The Client
-### A. Socket Connection
-### B. Connect
-
 ------------------------------------------------------------------------------------------------------
 
 ### All functions in the subject
@@ -65,4 +61,4 @@ Note that using poll is more efficient than a simple read/write method. Read and
 - https://www.scaler.com/topics/socket-programming-in-c/ (Socket Programming)
 
 
-### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), Mutasem, [Obada Outabachi](https://www.github.com/0bada1)
+### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), [Mutasem](https://www.github.com/mmajid-m), [Obada Outabachi](https://www.github.com/0bada1)
