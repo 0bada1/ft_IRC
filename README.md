@@ -57,7 +57,7 @@ Socket Programming is a method to connect two nodes over a network to establish 
 ## Resources
 - [Socket Programming | geeksforgeeks](https://www.geeksforgeeks.org/socket-programming-cc/)
 - [Socket Programming | scaler](https://www.scaler.com/topics/socket-programming-in-c/)
-- [RFC 1459 | Internet Relay Chat Protocol](www.rfc-editor.org/rfc/rfc1459), [RFC 2810 | Internet Relay Chat Architecture](https://www.rfc-editor.org/rfc/rfc2810), [RFC 2812 | Internet Relay Chat: Client Protocol](www.rfc-editor.org/rfc/rfc2812) 
+- [RFC 1459 | Internet Relay Chat Protocol](https://www.rfc-editor.org/rfc/rfc1459), [RFC 2810 | Internet Relay Chat Architecture](https://www.rfc-editor.org/rfc/rfc2810), [RFC 2812 | Internet Relay Chat: Client Protocol](www.rfc-editor.org/rfc/rfc2812) 
 
 
 ### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), [Mutasem](https://www.github.com/mmajid-m), [Obada Outabachi](https://www.github.com/0bada1)
