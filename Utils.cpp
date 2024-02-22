@@ -205,3 +205,27 @@ void Utils::signalHandler(int signum) {
 // 		sendErrorMessage(user->_fd, "PART command requires 1 argument\n", TOO_MANY_ARGS);
 // 	}
 // }
+
+User &Utils::find(int fd) {
+	for(std::vector<User>::iterator it = Server::_users.begin(); it != Server::_users.end(); ++it) {
+        if (it->_fd == fd) {
+			return *it;
+        }
+    }
+	throw Server::ServerException("Utils::find: User not found");
+}
+
+void Utils::signalHandler(int signum) {
+
+    std::cout << RED << "Interrupt signal (" << signum << ") received." << RESET << "\n";
+
+    for(std::vector<int>::iterator it = Server::_fds.begin(); it != Server::_fds.end(); ++it) {
+            close(*it);
+    }
+	shutdown(Server::serverSocket, SHUT_RDWR);
+    close(Server::serverSocket);
+	Server::_fds.clear();
+	Server::_users.clear();
+	Server::_channels.clear();
+    exit(signum);
+}
