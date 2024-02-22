@@ -11,15 +11,17 @@ Socket Programming is a method to connect two nodes over a network to establish 
 
 
 ### There are 2 programs that should be made
-![image](https://github.com/0bada1/ft_IRC/assets/95438648/37c49f36-5cc8-404c-925c-4c803208159d) <br>
-Note that using poll is more efficient than a simple read/write method. Read and write takes up a lot of resources, so using poll is required.
-
+![image](https://github.com/0bada1/ft_IRC/assets/95438648/37c49f36-5cc8-404c-925c-4c803208159d)
 ## 1) Building The Server
 ### A. Socket Creation
 ### B. Setsockopt
 ### C. Bind
 ### D. Listen
 ### E. Accept
+
+## 2) Building The Client
+### A. Socket Connection
+### B. Connect
 
 ------------------------------------------------------------------------------------------------------
 
@@ -61,4 +63,4 @@ Note that using poll is more efficient than a simple read/write method. Read and
 - https://www.scaler.com/topics/socket-programming-in-c/ (Socket Programming)
 
 
-### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), [Mutasem](https://www.github.com/mmajid-m), [Obada Outabachi](https://www.github.com/0bada1)
+### Created by: [Abdul Aziz](https://www.github.com/Ael-masr), Mutasem, [Obada Outabachi](https://www.github.com/0bada1)

@@ -1,0 +1,73 @@
+---------------------------**NOTES**---------------------------
+
+This is a notes file to keep track of progress and changes that
+must be made or bugs that were resolved. Documentation is also
+included here.
+
+*Current code base version* -> *Doesn't compile all files*
+
+1. *Server* (IN PROGRESS) ~ Mutasem | mmajid-m
+- socket -> initialize server varaibles -> setsockopt -> bind -> listen -> accept (NOT DONE)
+
+2. *Parsing* (IN PROGRESS) ~ AbdulAziz | ael-masr
+- Parse command line (NOT DONE)
+
+3. *Commands* (IN PROGRESS) ~ Obada | 0bada1
+- USER (IN PROGRESS)
+- NICK (IN PROGRESS)
+- JOIN (IN PROGRESS)
+. Usage:
+JOIN #<channel> <nickname>
+JOIN &<channel> <nickname>
+- PART (IN PROGRESS)
+- PRIVMSG (IN PROGRESS)
+. Usage:
+PRIVMSG <user> <msg>
+PRIVMSG #<channel> <msg>
+- KICK (IN PROGRESS)
+- INVITE (IN PROGRESS)
+- TOPIC (IN PROGRESS)
+- MODE (IN PROGRESS)
+Options:
+· i: Set/remove Invite-only channel (NOT DONE)
+· t: Set/remove the restrictions of the TOPIC command to channel operators (NOT DONE)
+· k: Set/remove the channel key (password) (NOT DONE)
+· o: Give/take channel operator privilege (NOT DONE)
+· l: Set/remove the user limit to channel (NOT DONE)
+
+_______________________________________________________________
+
+
+
+***RFC 1459 NOTES***
+1.2 Clients
+* Description
+- Anything that connects to a server apart from a server
+* Restrictions (See RFC 2812 section 5.1)
+- A client nickname shall be only up to 9 characters
+
+1.3 Channels
+* Description
+- A channel is a group that is created when the first user joins and deleted when the last user leaves
+- 2 types of channels exist:
+. '#' channel
+. '&' channel
+* Channel name resrictions:
+- Channel name can be up to 200 characters
+- Channel name must begin with '&' or '#'
+- Channel name may not contain spaces, comas or ctrl G (^G or ASCII 7)
+- Maximum of joined channels at once per user
+	1.3.1 Channel Operators
+	* Description
+	- A channel operator is the owner of a channel and is identified by a '@' prefix sign in their name in the channel only
+	* Operations allowed by channel operators
+	- KICK -> Eject client from channel
+	- MODE -> Change channel mode
+	- INVITE -> Invite a client to an invite only channel (+i)
+	- TOPIC -> Change the channel topic in a +t channel
+
+2. 
+
+***RFC 2810 NOTES***
+
+***RFC 2812 NOTES***
