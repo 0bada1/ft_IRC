@@ -19,10 +19,6 @@ Socket Programming is a method to connect two nodes over a network to establish 
 ### D. Listen
 ### E. Accept
 
-## 2) Building The Client
-### A. Socket Connection
-### B. Connect
-
 ------------------------------------------------------------------------------------------------------
 
 ### All functions in the subject
