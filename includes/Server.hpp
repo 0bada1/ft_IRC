@@ -1,51 +1,75 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include "User.hpp"
+#include "Channel.hpp"
+#include "Utils.hpp"
 #include <iostream>
-#include <stdlib.h>
-#include <string>
 #include <vector>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
-#include <sys/types.h>
 #include <fcntl.h>
 #include <cerrno>
 #include <iomanip>
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <sys/time.h>
-#include <exception>
 
+#define MAX_PORT UINT16_MAX
+#define MAX_BUFFER 1024
 #define MAX_HOST_NAME 512
+#define CYAN "\033[36m"
+#define YELLOW "\033[33m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define RESET "\033[0m"
 
-using namespace std;
+
+class User;
+class Channel;
 class Server
 {
-    public:
-        // CONSTRUCTORS
-        Server(int port, string password);
-        ~Server();
+private:
+	Server(void);
 
-        // METHODS
-        int startServer(int port, string password);
-        // int runServer(); // To be completed by Mutasem
-
-        // GETTERS
-        int getServerSocket() const;
-        int getPort() const;
-
-
-        private:
-            static int     serverSocket_;
-            static int     port_;
-            static string  password_;
-            static struct  sockaddr_in serverAddress_;
-            static int     maxClients_;
-            static string  hostName_;
-            static char    char_hostName_[MAX_HOST_NAME];
-
+public:
+	static const int MAX_CLIENTS = FD_SETSIZE;
+	static const int BUFFER_SIZE = MAX_BUFFER;
+	static std::string _password;
+	static std::string _hostName;
+	static std::string bufferStr;
+	static char c_buffer[MAX_BUFFER];
+	static char c_hostName[MAX_HOST_NAME];
+	static int serverSocket;
+	static int max_sd;
+	static int sd;
+	static int valread;
+	static int _port;
+	static int newSocket;
+	static int curIndex;
+	static int addrlen;
+	static struct sockaddr_in address;
+	static fd_set readfds;
+	class ServerException : public std::exception
+	{
+		private:
+			std::string _msg;
+		public:
+			ServerException(std::string msg) : _msg(msg) {}
+			virtual ~ServerException() throw() {}
+			virtual const char *what() const throw() { return _msg.c_str(); }
+	};
+	static std::vector<int> _fds;
+	static std::vector<User> _users;
+	static std::vector<Channel> _channels;
+	static void openSocket(void);
+	static void run(void);
+	static void acceptConnection(void);
+	static void handleClientMessages(void);
+	static void showUsers(void);
+	static void showChannels(void);
+	static std::string getPassword(void);
 };
 
-# endif // SERVER_HPP
+#endif
