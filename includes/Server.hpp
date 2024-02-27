@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <math.h>
 
 #define MAX_PORT UINT16_MAX
 #define MAX_BUFFER 1024
@@ -25,6 +26,9 @@
 #define GREEN "\033[32m"
 #define RESET "\033[0m"
 
+// Server error codes (RFC 2812 section 5.2)
+#define NO_SUCHSERVER			" :No such server" // 402
+#define ERR_NOPRIVILEGES 		":Permission Denied- You're not an IRC operator" // 481	// Any command requiring operator privileges to operate must return this error to indicate the attempt was unsuccessful.
 
 class User;
 class Channel;
@@ -61,8 +65,8 @@ public:
 			virtual const char *what() const throw() { return _msg.c_str(); }
 	};
 	static std::vector<int> _fds;
-	static std::vector<User> _users;
-	static std::vector<Channel> _channels;
+	static std::vector<User> users_;
+	static std::vector<Channel> channels_;
 	static void openSocket(void);
 	static void run(void);
 	static void acceptConnection(void);
