@@ -1,21 +1,31 @@
-#include "includes/Users.hpp"
+#include "includes/User.hpp"
 
 using namespace std;
 
 // CONSTRUCTORS
-Users::Users() {}
+User::User() {}
 
-Users::Users(string usersname, string nickname)
+User::User(string username, string nickname)
 {
-    this->username_.push_back(username);
-    this->nickname_.push_back(nickname);
+    this->username_ = username;
+    this->nickname_ = nickname;
+    this->isRegistered_ = false;
 }
 
-Users::~Users() {}
+User::~User() {}
+
+// OVERLOAD
+bool    User::operator==(User const &rhs)
+{
+    if (this->nickname_ == rhs.getNickname() && this->username_ == rhs.getUsername())
+        return true;
+    return false;
+}
+
 
 // GETTERS
-string Users::getUsersname() const { return usersname; }
+string User::getUsername() const { return this->username_; }
 
-string Users::getNickname() const { return nickname; }
+string User::getNickname() const { return this->nickname_; }
 
 // METHODS
