@@ -17,14 +17,15 @@ included here.
 - NICK (IN PROGRESS)
 - JOIN (IN PROGRESS)
 . Usage:
-JOIN #<channel> <nickname>
-JOIN &<channel> <nickname>
+JOIN #<channel>
+JOIN &<channel>
 - PART (IN PROGRESS)
 - PRIVMSG (IN PROGRESS)
 . Usage:
 PRIVMSG <user> <msg>
 PRIVMSG #<channel> <msg>
-- KICK (IN PROGRESS)
+- NOTICE (IN PROGRESS) <!-- Check if required -->
+- KICK (DONE)
 - INVITE (IN PROGRESS)
 - TOPIC (IN PROGRESS)
 - MODE (IN PROGRESS)
@@ -36,8 +37,6 @@ Options:
 · l: Set/remove the user limit to channel (NOT DONE)
 
 _______________________________________________________________
-
-
 
 ***RFC 1459 NOTES***
 1.2 Clients
@@ -56,7 +55,7 @@ _______________________________________________________________
 - Channel name can be up to 200 characters
 - Channel name must begin with '&' or '#'
 - Channel name may not contain spaces, comas or ctrl G (^G or ASCII 7)
-- Maximum of joined channels at once per user
+- Maximum of 10 joined channels at once per user
 	1.3.1 Channel Operators
 	* Description
 	- A channel operator is the owner of a channel and is identified by a '@' prefix sign in their name in the channel only
