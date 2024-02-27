@@ -1,17 +1,27 @@
-#ifndef USERS_HPP
-#define USERS_HPP
+#ifndef USER_HPP
+#define USER_HPP
 
-#include "Server.hpp"
+// #include "Server.hpp"
+#include "Channel.hpp"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unistd.h>
+// #include <alogrithm>
+#include <cstring>
 
 using namespace std;
 
-class Users
+class User
 {
     public:
         // CONSTRUCTORS
-        Users();
-        Users(string username, string nickname);
-        ~Users();
+        User();
+        User(string username, string nickname);
+        ~User();
+
+        // OVERLOAD
+        bool    User::operator==(User const &rhs);
 
         // METHODS
 
@@ -20,9 +30,11 @@ class Users
         string getNickname() const;
         
     private:
-        vector<string> username_;
-        vector<string> nickname_;
+        vector<Channel> channels_;
+        string  username_;
+        string  nickname_;
+        bool    isRegistered_;
 
 };
 
-# endif // USERS_HPP
+# endif // USER_HPP
