@@ -1,5 +1,6 @@
 #include "includes/Channel.hpp"
-#include "Utils.hpp"
+#include "includes/Utils.hpp"
+#include "includes/User.hpp"
 
 using namespace std;
 
@@ -18,18 +19,20 @@ using namespace std;
 	this->mode_['l'] = false;
 } */
 
-Channel::Channel(string channel_name, char type)
+Channel::Channel(string channel_name, bool channelExists)
 {
 	this->max_users_ = -1; // Max users are initialially unlimited, so it is set to -1
 	this->channel_name_ = channel_name;
 	this->channel_topic_ = "";
 	this->password_ = "";
-	this->type_ = type; // '#' for public, '&' for private
-	this->mode_['i'] = false;
-	this->mode_['t'] = false;
-	this->mode_['k'] = false;
-	this->mode_['o'] = false;
-	this->mode_['l'] = false;
+	this->type_ = channel_name[0]; // '#' for public, '&' for private
+	this->mode_['i'] = false; // Invite only
+	this->mode_['t'] = false; // Topic
+	this->mode_['k'] = false; // Password
+	this->mode_['o'] = false; // Operator privelege
+	this->mode_['l'] = false; // User limit
+	if (channelExists == true)
+		Server::_channels.push_back(*this);
 }
 
 Channel::~Channel()
@@ -52,25 +55,33 @@ vector<User>	Channel::get_users() const { return this->users_; }
 vector<User>	Channel::get_operator_list() const { return this->operator_list_; }
 vector<User>	Channel::get_invite_list() const { return this->invite_list_; }
 vector<User>	Channel::get_ban_list() const { return this->ban_list_; }
+map<char, bool>	Channel::get_mode() const { return this->mode_; }
 
-// METHODS
-
-// int Channel::create_channel(string channel_name)
-// {
-// 	if (channel_name == "" || channel_name[0] != '#' || channel_name[0] != '&')
-// 	{
-// 		cerr << "Error 404: JOIN #<channel>" << endl;
-// 		return -1;
-// 	}
-
-// 	cout << "Channel " << channel_name << " has been created" << endl;
-// 	return 0;
-// }
+// SETTERS
+int	Channel::set_channel_topic(string topic) { this->channel_topic_ = topic; return 0; }
+int Channel::set_channel_password(string password) { this->password_ = password; return 0; }
+int Channel::set_max_users(int max_users) { this->max_users_ = max_users; return 0; }
+int Channel::set_type(char type) { this->type_ = type; return 0; }
+int Channel::set_channel_name(string channel_name) { this->channel_name_ = channel_name; return 0; }
+int Channel::set_mode(char mode, bool mode_state) { this->mode_[mode] = mode_state; return 0; }
 
 // OVERLOADS
 bool Channel::operator==(const Channel& other) const { return (this->channel_name_ == other.get_channel_name()); }
 
 // METHODS
+/**
+ * @brief Announce a message to all clients in a channel
+ * 
+ * @param user User announcing to channel
+ * @param message Message to be sent to channel
+ */
+int	Channel::announce_channel(string message)
+{
+	for (int i = 0; i < this->users_.size(); i++)
+		this->users_[i].send(this->users_[i].getFd(), message.c_str(), message.length(), 0);
+	return 0;
+}
+
 /** @brief Check if a channel exists
  * 
  * @param channel Channel to be checked
@@ -88,6 +99,7 @@ bool	Channel::channel_exists(Channel channel)
 /** @brief Check if a channel exists
  * 
  * @param channel string to be checked
+ * @return true if channel exists, false otherwise
 */
 bool	Channel::channel_exists(string channel)
 {
@@ -99,7 +111,10 @@ bool	Channel::channel_exists(string channel)
 	return false;
 }
 
-// Search for a user in a channel
+/** @brief Find a user in current channel
+ * 	@param users List of users in the channel
+ * 	@param user User to be found
+ */
 int		Channel::find_user(vector<User> users, User user)
 {
 	for (int i = 0; i < users.size(); i++)
@@ -110,6 +125,11 @@ int		Channel::find_user(vector<User> users, User user)
 	return -1;
 }
 
+/** @brief Find a user in current channel
+ * 
+ * 	@param users List of users in the channel
+ * 	@param user User(string) to be found
+ */
 int		Channel::find_user(vector<User> users, string user)
 {
 	for (int i = 0; i < users.size(); i++)
@@ -120,14 +140,47 @@ int		Channel::find_user(vector<User> users, string user)
 	return -1;
 }
 
+/** @brief Add a user to a channel
+ * 
+ * @param user User to be added
+*/
+void	Channel::addUser(User user) { this->users_.push_back(user); }
+
+/** @brief Add an operator to a channel
+ * 
+ * @param user User to be added
+*/
+void	Channel::addOperator(User user) { this->operator_list_.push_back(user); }
+
+/** @brief Add an invite to a channel
+ * 
+ * @param user User to be added
+*/
+void	Channel::addInvite(User user) { this->invite_list_.push_back(user); }
+
+/** @brief Add a ban to a channel
+ * 
+ * @param user User to be added
+*/
+void	Channel::addBan(User user) { this->ban_list_.push_back(user); }
+
 /** @brief Remove a user from a channel
  * 
  * @param user User to be removed
 */
-int	Channel::removeUser(string user)
-{
-	this->users_.erase(this->users_.begin() + find_user(this->users_, user)); // find_user() needs string overload
-}
+void	Channel::removeUser(User user) { this->users_.erase(this->users_.begin() + find_user(this->users_, user)); }
+
+/** @brief Remove an operator from a channel
+ * 
+ * @param user User to be removed
+*/
+void	Channel::removeOperator(User user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
+
+/** @brief Remove a banned user from a channel's banned list
+ * 
+ * @param user User to be banned
+*/
+void	Channel::removeBan(User user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
 
 /** @brief Sets the mode of the channel
  * 
