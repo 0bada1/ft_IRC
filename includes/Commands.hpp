@@ -18,16 +18,19 @@ class Commands
         ~Commands();
 
         // METHODS
-        int join(string channel, User user);
-        int kick(Channel channel, User user, User kicked_user, string reason);
+        int join(Channel channel, User user, string key);
+        int kick(Channel channel, User user, string kicked_user, string reason);
         int invite(Channel channel, User user, User invited_user);
+        int privmsg(Channel channel, User user, vector<string> message);
+        int privmsg(string receiver, User user, vector<string> message);
         int topic(Channel channel, User user, string topic);
-        int mode (Channel channel, User user, string mode);
+        int mode (Channel channel, User user, char mode, char state, string argument);
         int part(Channel channel, User user);
 
-        int addUser(string newUser, User user);
         int nick(string newNick, User user);
         int user(string newUser, User user);
+
+        int displayChannelIntro(User user);
         
     private:
 
