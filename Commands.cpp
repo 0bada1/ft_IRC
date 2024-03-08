@@ -25,54 +25,55 @@ Commands::~Commands() {}
  */
 int Commands::join(Channel channel, User user, string key)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
     {
-        cerr << "Error 404: JOIN #<channel>" << endl;
+        Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NEEDMOREPARAMS_M, ERR_NEEDMOREPARAMS_C);
         return -1;
     }
 
     if (user.isRegistered() == true) // User is registered
     {    
-        if (Channel::channel_exists(channel) == true) // Channel exists
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (Channel::find_user(channel.get_users(), user) == false) // User is not in channel
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is not in channel
             {
-                if (Channel::find_user(channel.get_ban_list(), user) == false) // User is not banned from channel
+                if (channel.find_user(channel.get_ban_list(), user) < 0) // User is not banned from channel
                 {
-                    if ((Channel::find_user(channel.get_invite_list(), user) == true && channel.get_mode()['i'] == true) || channel.get_mode()['i'] == false) // (User is invited to channel and channel is invite only) or (channel is not invite only)
+                    if ((channel.find_user(channel.get_invite_list(), user) >= 0 && channel.get_mode()['i'] == true) || channel.get_mode()['i'] == false) // (User is invited to channel and channel is invite only) or (channel is not invite only)
                     {
-                        if (channel.get_mode()['k'] == true && key == channel.get_password() || channel.get_mode()['k'] == false && key == "") // (Channel is password protected and password is correct) or (channel is not password protected and there is no key)
+                        if ((channel.get_mode()['k'] && key == channel.get_password()) || (!channel.get_mode()['k'] && key == "")) // (Channel is password protected and password is correct) or (channel is not password protected and there is no key)
                         {
-                            if (channel.get_mode()['l'] == true && channel.get_users().size() + 1 <= channel.get_max_users() || channel.get_mode() == false) // (Channel has user limit but is not full with new member) or (channel has no user limit)
+                            if ((channel.get_mode()['l'] && channel.get_users().size() + 1 <= static_cast<size_t>(channel.get_max_users())) || (!channel.get_mode()['l'])) // (Channel has user limit but is not full with new member) or (channel has no user limit)
                             {
                                 if (user.getChannels().size() + 1 <= 10) // Max channels have not been joined
                                 {
-                                    channel.addUser(user);
-                                    if (channel.get_users().size() == 1) // Only user in channel
+                                    channel.addUser(user); // Add user to channel
+                                    if (channel.get_users().size() == 1) // If only user in channel
                                         channel.addOperator(user); // Make user an operator
-                                    user.channels_.push_back(channel);
+                                    user.addChannel(channel); // Add channel to user's list of channels
                                     displayChannelIntro(user);
+                                    (channel.find_user(channel.get_invite_list(), user) >= 0) ? channel.removeInvite(user) : (void)user; // Remove user from invite list
                                 }
                                 else { Utils::sendErrorMessage(user.getFd(), ERR_TOOMANYCHANNELS_M, ERR_TOOMANYCHANNELS_C); cerr << ERR_TOOMANYCHANNELS_M; return ERR_TOOMANYCHANNELS_C;} // Max channels have been joined
                             }
-                            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_CHANNELISFULL_M, ERR_CHANNELISFULL_C); cerr << channel.get_channel_name() << ERR_CHANNELISFULL_M; return ERR_CHANNELISFULL_C; } // Channel is full
+                            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANNELISFULL_M).c_str(), ERR_CHANNELISFULL_C); cerr << channel.get_channel_name() << ERR_CHANNELISFULL_M; return ERR_CHANNELISFULL_C; } // Channel is full
                         }
                         else if (channel.get_mode()['k'] == false && key != "") // Channel is not password protected but a password was provided
-                        { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + " :Channel has no key required (-k)\n", ERR_BADCHANNELKEY_C); cerr << ERR_BADCHANNELKEY_C << " ERROR" << " :Channel has no key required (-k)\n"; return ERR_BADCHANNELKEY_C; } // There is no password but a password was provided
-                        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_BADCHANNELKEY_M, ERR_BADCHANNELKEY_C); cerr << channel.get_channel_name() << ERR_BADCHANNELKEY_M; return ERR_BADCHANNELKEY_C; } // Password is incorrect
+                        { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + " :Channel has no key required (-k)\n").c_str(), ERR_BADCHANNELKEY_C); cerr << ERR_BADCHANNELKEY_C << " ERROR" << " :Channel has no key required (-k)\n"; return ERR_BADCHANNELKEY_C; } // There is no password but a password was provided
+                        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_BADCHANNELKEY_M).c_str(), ERR_BADCHANNELKEY_C); cerr << channel.get_channel_name() << ERR_BADCHANNELKEY_M; return ERR_BADCHANNELKEY_C; } // Password is incorrect
                     }
-                    else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_INVITEONLYCHAN_M, ERR_INVITEONLYCHAN_C); cerr << channel.get_channel_name() << ERR_INVITEONLYCHAN_M; return ERR_INVITEONLYCHAN_C; } // Channel is invite only
+                    else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_INVITEONLYCHAN_M).c_str(), ERR_INVITEONLYCHAN_C); cerr << channel.get_channel_name() << ERR_INVITEONLYCHAN_M; return ERR_INVITEONLYCHAN_C; } // Channel is invite only
                 }
-                else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_BANNEDFROMCHAN_M, ERR_BANNEDFROMCHAN_C); cerr << channel.get_channel_name() << ERR_BANNEDFROMCHAN_M; return ERR_BANNEDFROMCHAN_C; } // User is banned from channel
+                else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_BANNEDFROMCHAN_M).c_str(), ERR_BANNEDFROMCHAN_C); cerr << channel.get_channel_name() << ERR_BANNEDFROMCHAN_M; return ERR_BANNEDFROMCHAN_C; } // User is banned from channel
             }
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_USERONCHANNEL_M, ERR_USERONCHANNEL_C); cerr << channel.get_channel_name() << ERR_USERONCHANNEL_M; return ERR_USERONCHANNEL_C; } // User is already in channel
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_USERONCHANNEL_M).c_str(), ERR_USERONCHANNEL_C); cerr << channel.get_channel_name() << ERR_USERONCHANNEL_M; return ERR_USERONCHANNEL_C; } // User is already in channel
         }
-        else // Channel doesn't exist | Create new channel <--- Can delete this else condition if parser passes a Channel constructor
+        else // Channel doesn't exist | Create new channel
         {
-            Channel new_channel(channel, true);
+            Channel new_channel(channel.get_channel_name(), true);
             new_channel.addUser(user);
             new_channel.addOperator(user);
-            user.channels_.push_back(new_channel);
+            user.addChannel(new_channel);
             displayChannelIntro(user);
         }
     }
@@ -90,56 +91,63 @@ int Commands::join(Channel channel, User user, string key)
  *  Use send instead of cout
  *  @param channel Channel from which the user will be kicked | If the channel doesn't exist, pass Channel("<channel_name">, false)
  *  @param user User who is kicking the other user
- *  @param kicked_user User to be kicked 
+ *  @param kicked_user User(string) to be kicked 
  *  @param reason Reason for the kick | (set to "" if not provided) (default: "No reason given")
 **/
 int Commands::kick(Channel channel, User user, string kicked_user, string reason)
 {
     if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
     {
-        cerr << "Usage: /kick #<channel> <user> <reason>" << endl;
+        Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C);
+        // cerr << "Usage: /kick #<channel> <user> <reason>" << endl;
         return -1;
     }
 
-    if (Channel::channel_exists(channel) == true)
+    if (user.isRegistered() == true) // User is registered
     {
-        if (Channel::find_user(channel.get_users(), user) == 0)
+        if (channel.channel_exists(channel) == true)
         {
-            if (Channel::find_user(channel.get_operator_list(), user) == 0)
+            if (channel.find_user(channel.get_users(), user) >= 0)
             {
-                if (Channel::find_user(channel.get_users(), kicked_user) == 0)
+                if (channel.find_user(channel.get_operator_list(), user) >= 0)
                 {
-                    // Use send(socket fd, message, message length, 0)
-                    channel.removeUser(kicked_user);
-                    kicked_user.channels_.erase(std::find(user.channels_.begin(), user.channels_.end(), channel));
-                    
-                    string  message = (user.getNickname() + " has kicked " + Utils::find_User(kicked_user).getNickname() + " from " + channel.get_channel_name());
-                    send(user.get_fd(), message, strlen(message.c_str), 0);
-                    cout << "Kicking " << kicked_user.getNickname() << " from " << channel;
-                    
-                    if (reason != "")
+                    if (channel.find_user(channel.get_users(), kicked_user) >= 0)
                     {
-                        send(user.get_fd(), " Reason: " + reason + "\n", 12 + reason.size(), 0);
-                        cout << " Reason: " << reason << endl;
+                        channel.removeUser(Utils::find_User(kicked_user));
+                        Utils::find_User(kicked_user).removeChannel(channel); // Remove channel from user's list of channels
+                        (channel.find_user(channel.get_operator_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeOperator(Utils::find_User(kicked_user)) : (void)kicked_user;
+                        (channel.find_user(channel.get_invite_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeInvite(Utils::find_User(kicked_user)) : (void)kicked_user;
+                        
+                        string  message = (user.getNickname() + " has kicked " + Utils::find_User(kicked_user).getNickname() + " from " + channel.get_channel_name());
+                        send(user.getFd(), message.c_str(), strlen(message.c_str()), 0);
+                        // cout << "Kicking " << kicked_user << " from " << channel;
+                        
+                        if (reason != "")
+                        {
+                            message = " Reason: " + reason + "\n";
+                            send(user.getFd(), message.c_str(), strlen(message.c_str()), 0);
+                            cout << " Reason: " << reason << endl;
+                        }
+                        else
+                        {
+                            send(user.getFd(), " Reason: No reason given\n", 26, 0);
+                            cout << " Reason: No reason given" << endl;
+                        }
                     }
-                    else
-                    {
-                        send(user.get_fd(), " Reason: No reason given\n", 26, 0);
-                        cout << " Reason: No reason given" << endl;
-                    }
-                }
-                else { Utils::sendErrorMessage(user.getFd(), Utils::find_User(kicked_user).getNickname() + " " + channel.get_channel_name() + ERR_USERNOTINCHANNEL_M, ERR_USERNOTINCHANNEL_C); cerr << kicked_user << " " << channel.get_channel_name() << ERR_USERNOTINCHANNEL_M; return ERR_USERNOTINCHANNEL_C; } // Kicked user not in channel
-            }   
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M, ERR_CHANOPRIVSNEEDED_C); cerr << user.getNickname() << " " << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
+                    else { Utils::sendErrorMessage(user.getFd(), (Utils::find_User(kicked_user).getNickname() + " " + channel.get_channel_name() + ERR_USERNOTINCHANNEL_M).c_str(), ERR_USERNOTINCHANNEL_C); cerr << kicked_user << " " << channel.get_channel_name() << ERR_USERNOTINCHANNEL_M; return ERR_USERNOTINCHANNEL_C; } // Kicked user not in channel
+                }   
+                else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M).c_str(), ERR_CHANOPRIVSNEEDED_C); cerr << user.getNickname() << " " << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
+            }
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << ERR_NOTONCHANNEL_C << " ERROR: " << user.getNickname() << " " << channel.get_channel_name() << ": " << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
         }
-        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << ERR_NOTONCHANNEL_C << " ERROR: " << user.getNickname() << " " << channel.get_channel_name() << ": " << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << ERR_NOSUCHCHANNEL_C << " ERROR: " << channel.get_channel_name() << ": " << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
-    else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C); cerr << ERR_NOSUCHCHANNEL_C << " ERROR: " << channel.get_channel_name() << ": " << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
+    else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
 
     return 0;
 }
 
-/** @brief Invites a user to a channel
+/** @brief Invites a user to a channel. Invites are valid once and are removed after the user joins the channel\n
  * 
  *  @example /invite evaluator #general
  *  @note    Recheck else conditions to make sure they are correct. Wrote code while sleepy :)
@@ -148,7 +156,7 @@ int Commands::kick(Channel channel, User user, string kicked_user, string reason
  *  @param user User who is inviting the other user
  *  @param invited_user User to be invited
  */
-int Commands::invite(Channel channel, User user, User invited_user)
+int Commands::invite(Channel channel, User user, string invited_user)
 {
     if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
     {
@@ -159,30 +167,32 @@ int Commands::invite(Channel channel, User user, User invited_user)
 
     if (user.isRegistered() == true) // User is registered
     {
-        if (Channel::channel_exists(channel) == true) // Channel exists
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (Channel::find_user(channel.get_users(), user) == true) // User is in channel
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                if ((channel.get_mode()['i'] == true && Channel::find_user(channel.get_operator_list(), user) == true) || channel.get_mode()['i'] == false) // Channel is invite only and user is an operator or channel is not invite only
+                if ((channel.get_mode()['i'] == true && channel.find_user(channel.get_operator_list(), user) >= 0) || channel.get_mode()['i'] == false) // Channel is invite only and user is an operator or channel is not invite only
                 {
                     if (channel.find_user(channel.get_users(), invited_user) == false) // Invited user is not in channel
                     {
                         if (channel.find_user(channel.get_ban_list(), invited_user) == false) // User is not banned from channel
                         {
-                            channel.addUser(invited_user);
-                            invited_user.channels_.push_back(channel);
-                            send(invited_user.getFd(), "You have been invited to " + channel.get_channel_name() + " by " + user.getNickname() + "\n", 33 + channel.get_channel_name().size() + user.getNickname().size(), 0); // Invited user recieves message
-                            send(user.getFd(), invited_user.getNickname() + " has been invited to " + channel.get_channel_name() + "\n", 24 + invited_user.getNickname().size() + channel.get_channel_name().size(), 0); // Inviting user recieves message
+                            channel.addUser(Utils::find_User(invited_user));
+                            Utils::find_User(invited_user).addChannel(channel);
+                            string  message = "You have been invited to " + channel.get_channel_name() + " by " + user.getNickname() + "\n";
+                            send(invited_user.getFd(), message.c_str(), strlen(message.c_str()), 0); // Invited user recieves message
+                            message = invited_user.getNickname() + " has been invited to " + channel.get_channel_name() + "\n";
+                            send(user.getFd(), message.c_str(), strlen(message.c_str()), 0); // Inviting user recieves message
                         }
-                        else { Utils::sendErrorMessage(user.getFd(), invited_user.getNickname() + " " + channel.get_channel_name() + ERR_BANNEDFROMCHAN_M, ERR_BANNEDFROMCHAN_C); cerr << invited_user.getNickname() << " " << channel.get_channel_name() << ERR_BANNEDFROMCHAN_M; return ERR_BANNEDFROMCHAN_C; } // User is banned from channel
+                        else { Utils::sendErrorMessage(user.getFd(), (invited_user.getNickname() + " " + channel.get_channel_name() + ERR_BANNEDFROMCHAN_M).c_str(), ERR_BANNEDFROMCHAN_C); cerr << invited_user.getNickname() << " " << channel.get_channel_name() << ERR_BANNEDFROMCHAN_M; return ERR_BANNEDFROMCHAN_C; } // User is banned from channel
                     }
-                    else { Utils::sendErrorMessage(user.getFd(), invited_user.getNickname() + " " +  channel.get_channel_name() + ERR_USERONCHANNEL_M, ERR_USERONCHANNEL_C); cerr << invited_user.getNickname() << " " << channel.get_channel_name() << ERR_USERONCHANNEL_M; return ERR_USERONCHANNEL_C; } // Invited user is already in channel
+                    else { Utils::sendErrorMessage(user.getFd(), (invited_user.getNickname() + " " +  channel.get_channel_name() + ERR_USERONCHANNEL_M).c_str(), ERR_USERONCHANNEL_C); cerr << invited_user.getNickname() << " " << channel.get_channel_name() << ERR_USERONCHANNEL_M; return ERR_USERONCHANNEL_C; } // Invited user is already in channel
                 }
-                else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M, ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator (+o)
+                else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M).c_str(), ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator (+o)
             }
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
         }
-        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
     else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
     
@@ -199,28 +209,35 @@ int Commands::invite(Channel channel, User user, User invited_user)
  */
 int Commands::privmsg(Channel channel, User user, vector<string> message)
 {
-    if (Channel::channel_exists(channel) == false)
+    if (channel.channel_exists(channel) == false)
     {
-        Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C);
+        Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
         cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M;
         return ERR_NOSUCHCHANNEL_C;
     }
 
+    string  msg;
     if (user.isRegistered() == true)
     {
-        if (Channel::channel_exists(channel) == true) // Channel exists
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (channel.find_user(user) >= 0) // User is in channel
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
                 for (vector<User>::iterator it = channel.get_users().begin(); it != channel.get_users().end(); it++) // loop over all members of channel and send message
                 {
+                    msg = user.getNickname() + ": ";
+                    send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
                     for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
-                        send(it->getFd(), user.getNickname() + ": " + message[i] + "\n", user.getNickname().size() + message[i].size() + 5, 0);
+                    {
+                        msg = message[i] + " ";
+                        send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                    }
+                    send(it->getFd(), "\n", 2, 0); // Send new line to reciever
                 }
             }
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
         }
-        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
     else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
 
@@ -242,14 +259,18 @@ int Commands::privmsg(string receiver, User user, vector<string> message)
         {
             if (Utils::find_User(receiver).getFd() != user.getFd()) // User is not sending a message to themselves
             {
-                send(Utils::find_User(receiver).getFd(), user.getNickname() + ": ", user.getNickname().size() + 2, 0); // Send sender's nickname to reciever
+                string  msg = user.getNickname() + ": ";
+                send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
                 for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
-                    send(Utils::find_User(receiver).getFd(), message[i] + " ", message[i].size() + 2, 0); // Send message to reciever
+                {
+                    msg = message[i] + " ";
+                    send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                }
                 send(Utils::find_User(receiver).getFd(), "\n", 2, 0); // Send new line to reciever
             }
             else { Utils::sendErrorMessage(user.getFd(), "You cannot message yourself\n", -1); cerr << "You cannot message yourself"; return -1; } // User is sending a message to themselves
         }
-        else { Utils::sendErrorMessage(user.getFd(), receiver + ERR_NOSUCHNICK_M, ERR_NOSUCHNICK_C); cerr << receiver << ERR_NOSUCHNICK_M; return ERR_NOSUCHNICK_C; } // User doesn't exist
+        else { Utils::sendErrorMessage(user.getFd(), (receiver + ERR_NOSUCHNICK_M).c_str(), ERR_NOSUCHNICK_C); cerr << receiver << ERR_NOSUCHNICK_M; return ERR_NOSUCHNICK_C; } // User doesn't exist
     }
     else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
 
@@ -259,7 +280,7 @@ int Commands::privmsg(string receiver, User user, vector<string> message)
 /**
  * @brief Changes the topic of a channel. Topic will be displayed when a user joins the channel or when the /topic command is used
  * 
- * @example /topic #general IRC
+ * @example /topic #general IRC | /topic #general
  * 
  * @param channel Channel to which the topic will be changed | If the channel doesn't exist, pass Channel("<channel_name">, false)
  * @param user User who is changing the topic
@@ -276,29 +297,30 @@ int Commands::topic(Channel channel, User user, string topic)
 
     if (user.isRegistered() == true) // User is registered
     {
-        if (Channel::channel_exists(channel) == true) // Channel exists
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
             if (channel.find_user(channel.get_users(), user) == true) // User is in channel
             {
-                if ((channel.get_mode()['t'] == true && channel.find_user(channel.get_operator_list(), user) == true) || (channel.get_mode()['t'] == false)) // (Channel is topic privileged and user is an operator) or (channel is not topic privileged)
+                if ((channel.get_mode()['t'] == true && channel.find_user(channel.get_operator_list(), user) == true) || (channel.get_mode()['t'] == false) || (topic == "")) // (Channel is topic privileged and user is an operator) or (channel is not topic privileged, but a topic was not provided)
                 {
-                    // if (topic != "")
-                    // check if topic is "" to throw RPL_NOTOPIC 
-                    // check if topic is too long
-                    // check if there is no topic
-                    // check if topic is the same as the current topic
-                    // fix order of if statements
-
+                    if (topic != "" && topic.size() <= 50 && topic != channel.get_channel_topic() && channel.find_user(channel.get_operator_list(), user.getNickname()) >= 0) // New topic is not too long and is different from the current topic
+                    {
                             channel.set_topic(topic);
                             channel.announce_channel(user.getNickname() + " has changed the topic to: " + topic + "\n"); // Announce to channel
-
-
+                    }
+                    else if (topic == "") // User wants to see the current topic
+                        {
+                            if (channel.get_channel_topic() != "")
+                                Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ": " + channel.get_channel_topic() + "\n").c_str(), 0); // Send current topic to user
+                            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + RPL_NOTOPIC_M).c_str(), RPL_NOTOPIC_C); cerr << channel.get_channel_name() << RPL_NOTOPIC_M; return RPL_NOTOPIC_C; } // No topic set (RPL_NOTOPIC
+                        }
+                    else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + RPL_NOTOPIC_M).c_str(), RPL_NOTOPIC_C); cerr << channel.get_channel_name() << RPL_NOTOPIC_M; return RPL_NOTOPIC_C; }
                 }
-                else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M, ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
+                else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M).c_str(), ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
             }
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel          
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel          
         }
-        else { cerr << ERR_NOSUCHCHANNEL_C << " ERROR: " << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << ERR_NOSUCHCHANNEL_C << " ERROR: " << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
     else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
 
@@ -327,20 +349,22 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
     }
     else if (state != '+' && state != '-')
     {
-        Utils::sendErrorMessage(user.getFd(), "ERROR " + ERR_UNKNOWNMODE_C + ": " + state + ERR_UNKNOWNMODE_M, ERR_UNKNOWNMODE_C);
+        string  message = state + ERR_UNKNOWNMODE_M;
+        Utils::sendErrorMessage(user.getFd(), message, ERR_UNKNOWNMODE_C);
         cerr << "Usage: /mode #<channel> <+/-mode> {argument}" << endl;
         return -1;
     }
     else if (mode != 'i' && mode != 't' && mode != 'k' && mode != 'o' && mode != 'l')
     {
-        Utils::sendErrorMessage(user.getFd(), "ERROR " + ERR_UNKNOWNMODE_C + ": " + mode + ERR_UNKNOWNMODE_M, ERR_UNKNOWNMODE_C);
+        string  message = mode + ERR_UNKNOWNMODE_M;
+        Utils::sendErrorMessage(user.getFd(), message, ERR_UNKNOWNMODE_C);
         cerr << "Usage: /mode #<channel> <+/-mode> {argument}" << endl;
         return -1;
     }
 
     if (user.isRegistered() == true) // User is registered
     {
-        if (Channel::channel_exists(channel) == true) // Channel exists
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
             if (channel.find_user(channel.get_users(), user) == true) // User is in channel
             {
@@ -368,8 +392,8 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
                         }
                         else if (mode == 'o') // Operator privilege for channel
                         {
-                            int    operator_index = Channel::find_user(channel.get_users(), argument);
-                            (operator_index >= 0) ? (void)argument : Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHNICK_M, ERR_NOSUCHNICK_C); // User(argument) doesn't exist in channel
+                            int    operator_index = channel.find_user(channel.get_users(), argument);
+                            (operator_index >= 0) ? (void)argument : Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHNICK_M).c_str(), ERR_NOSUCHNICK_C); // User(argument) doesn't exist in channel
                             (mode_state == true) ? channel.addOperator(channel.get_users()[operator_index]) : channel.removeOperator(channel.get_users()[operator_index]);
                             channel.set_mode(mode, mode_state); // Set channel mode
                             (mode_state == true) ? channel.announce_channel(user.getNickname() + " has given operator privileges to " + argument + " in " + channel.get_channel_name() + "\n") : channel.announce_channel(user.getNickname() + " has removed operator privileges from " + argument + " in " + channel.get_channel_name() + "\n"); // Announce to channel
@@ -377,8 +401,8 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
                         else if (mode == 'l') // User limit for channel
                         {
                             for (size_t i = 0; i < argument.size(); i++) // Check if argument is numeric (0-9)
-                                (argument[i] >= '0' && argument[i] <= '9') ? (void)argument[i] : Utils::sendErrorMessage(user.getFd(), argument + ERR_NEEDMOREPARAMS_M, ERR_NEEDMOREPARAMS_C); // Return error or continue
-                            (argument > "9999") ? Utils::sendErrorMessage(user.getFd(), argument + ERR_NEEDMOREPARAMS_M, ERR_NEEDMOREPARAMS_C) : (void)argument; // Return error or continue 
+                                (argument[i] >= '0' && argument[i] <= '9') ? (void)argument[i] : Utils::sendErrorMessage(user.getFd(), (argument + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C); // Return error or continue
+                            (argument > "9999") ? Utils::sendErrorMessage(user.getFd(), (argument + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C) : (void)argument; // Return error or continue 
                             int   limit = atoi(argument.c_str());
                             (mode_state == true) ? channel.set_max_users(limit) : (void)argument; // Set user limit to argument or continue
                             channel.set_mode(mode, mode_state); // Set channel mode
@@ -387,11 +411,11 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
                     }
                     else { return -1; }
                 }
-                else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M, ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
+                else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M).c_str(), ERR_CHANOPRIVSNEEDED_C); cerr << channel.get_channel_name() << ERR_CHANOPRIVSNEEDED_M; return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
             }
-            else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
         }
-        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
     else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
     // cout << user.getNickname() << " has changed the mode to: " << state << mode << endl;
@@ -399,10 +423,85 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
 }
 
 /**
- * @brief Leaves a channel
+ * @brief Sends a notice to all users in the server
+ * 
+ * @param user User sending the notice
+ * @param message Message to be sent as a vector of strings
+ */
+int Commands::notice(User user, vector<string> message)
+{
+    if (message.size() == 0)
+    {
+        Utils::sendErrorMessage(user.getFd(), "Usage: /notice <user> <message>\n", -1);
+        cerr << "Usage: /notice <user> <message>" << endl;
+        return -1;
+    }
+
+    string  msg;
+    if (user.isRegistered() == true)
+    {
+        for (vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); it++) // loop over all users in server and send message
+        {
+            msg = user.getNickname() + ": ";
+            send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+            for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
+            {
+                msg = message[i] + " ";
+                send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+            }
+            send(it->getFd(), "\n", 2, 0); // Send new line to reciever
+        }
+    }
+    else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
+
+    return 0;
+}
+
+/**
+ * @brief Sends a notice to a user
+ * 
+ * @param receiver User who will recieve the notice
+ * @param user User sending the notice
+ * @param message Message to be sent as a vector of strings separated by spaces, so no spaces in any element
+ */
+int Commands::notice(string receiver, User user, vector<string> message)
+{
+    if (message.size() == 0)
+    {
+        Utils::sendErrorMessage(user.getFd(), "Usage: /notice <user> <message>\n", -1);
+        cerr << "Usage: /notice <user> <message>" << endl;
+        return -1;
+    }
+
+    if (user.isRegistered() == true)
+    {
+        if (Utils::nickname_exists(receiver) == true) // User exists
+        {
+            if (Utils::find_User(receiver).getFd() != user.getFd()) // User is not sending a notice to themselves
+            {
+                string msg = user.getNickname() + ": ";
+                send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+                for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
+                {
+                    msg = message[i] + " ";
+                    send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                }
+                send(Utils::find_User(receiver).getFd(), "\n", 2, 0); // Send new line to reciever
+            }
+            else { Utils::sendErrorMessage(user.getFd(), "You cannot send a notice to yourself\n", -1); cerr << "You cannot send a notice to yourself"; return -1; } // User is sending a notice to themselves
+        }
+        else { Utils::sendErrorMessage(user.getFd(), (receiver + ERR_NOSUCHNICK_M).c_str(), ERR_NOSUCHNICK_C); cerr << receiver << ERR_NOSUCHNICK_M; return ERR_NOSUCHNICK_C; } // User doesn't exist
+    }
+    else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
+
+    return 0;
+}
+
+/**
+ * @brief Leaves a channel. If the user is the last one, the channel will be deleted | If the user is the last operator, the first channel member will become an operator
  * @example /part #general
  * 
- * @param channel Channel to be left
+ * @param channel Channel to be left | If the channel doesn't exist, pass Channel("<channel_name">, false)
  * @param user User who is leaving the channel
  */
 int Commands::part(Channel channel, User user)
@@ -414,20 +513,32 @@ int Commands::part(Channel channel, User user)
         return -1;
     }
 
-    if (Channel::channel_exists(channel) == true)
+    if (user.isRegistered() == true) // User is registered
     {
-        if (Channel::find_user(channel.get_users(), user) == true)
+        if (channel.channel_exists(channel) == true) // Channel exists
         {
-            channel.removeUser(user);
-            user.channels_.erase(std::find(user.getChannels().begin(), user.getChannels().end(), channel));
-            channel.announce_channel(user.getNickname() + " has left " + channel.get_channel_name() + "\n"); // Announce to channel
-            // cout << user.getNickname() << " has left " << channel << endl;
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
+            {
+                channel.removeUser(user);
+                (channel.find_user(channel.get_operator_list(), user) >= 0) ? channel.removeOperator(user) : (void)user; // Remove user from operator list if they are an operator
+                (channel.find_user(channel.get_invite_list(), user) >= 0) ? channel.removeInvite(user) : (void)user; // Remove user from invite list if they are invited
+                user.removeChannel(channel); // Remove channel from user's list of channels
+                channel.announce_channel(user.getNickname() + " has left " + channel.get_channel_name() + "\n"); // Announce to channel
+                send(user.getFd(), ("You have left " + channel.get_channel_name() + "\n").c_str(), 17 + channel.get_channel_name().size(), 0); // User recieves message
+
+                if (channel.get_users().size() == 0) // If last user in channel
+                    channel.removeChannel(channel.get_channel_name()); // Remove channel
+                else if (channel.get_operator_list().size() == 0) // If last operator in channel
+                {
+                    channel.addOperator(channel.get_users()[0]); // First channel member becomes an operator
+                    send(channel.get_users()[0].getFd(), ("You are now an operator in " + channel.get_channel_name() + "\n").c_str(), 31 + channel.get_channel_name().size(), 0); // First channel member recieves message
+                }
+            }
+            else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
         }
-        else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOTONCHANNEL_M, ERR_NOTONCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOTONCHANNEL_M; return ERR_NOTONCHANNEL_C; } // User is not in channel
+        else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
     }
-    else { Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C); cerr << channel.get_channel_name() << ERR_NOSUCHCHANNEL_M; return ERR_NOSUCHCHANNEL_C; } // Channel doesn't exist
-    
-    send(user.getFd(), ("You have left " + channel.get_channel_name() + "\n").c_str(), 17 + channel.get_channel_name().size(), 0); // User recieves message
+    else { Utils::sendErrorMessage(user.getFd(), ERR_NOTREGISTERED_M, ERR_NOTREGISTERED_C); cerr << ERR_NOTREGISTERED_M; return ERR_NOTREGISTERED_C; } // User is not registered
     // cout << user.getNickname() << " has left " << channel << endl;
     return 0;
 }
@@ -444,8 +555,8 @@ int Commands::nick(string newNick, User user)
 {
     if (Utils::nickname_exists(newNick) == true)
     {
-        Utils::sendErrorMessage(user.getFd(), ERR_ALREADYREGISTRED_C + "ERROR " + ERR_ALREADYREGISTRED_M, ERR_ALREADYREGISTRED_C)
-        cerr << ERR_ALREADYREGISTRED_C << "ERROR " << ERR_ALREADYREGISTRED_M << endl;
+        Utils::sendErrorMessage(user.getFd(), ERR_ALREADYREGISTRED_M, ERR_ALREADYREGISTRED_C);
+        cerr << ERR_ALREADYREGISTRED_C << " ERROR " << ERR_ALREADYREGISTRED_M << endl;
         return -1;
     }
 
@@ -466,7 +577,7 @@ int Commands::user(string newUser, User user)
 {
     if (Utils::username_exists(newUser) == true)
     {
-        Utils::sendErrorMessage(user.getFd(), ERR_ALREADYREGISTRED_C + "ERROR " + ERR_ALREADYREGISTRED_M, ERR_ALREADYREGISTRED_C);
+        Utils::sendErrorMessage(user.getFd(), ERR_ALREADYREGISTRED_M, ERR_ALREADYREGISTRED_C);
         cerr << ERR_ALREADYREGISTRED_C << "ERROR " << ERR_ALREADYREGISTRED_M << endl;
         return -1;
     }
