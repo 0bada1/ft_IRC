@@ -32,7 +32,7 @@ Channel::Channel(string channel_name, bool channelExists)
 	this->mode_['o'] = false; // Operator privelege
 	this->mode_['l'] = false; // User limit
 	if (channelExists == true)
-		Server::_channels.push_back(*this);
+		Server::channels_.push_back(*this);
 }
 
 Channel::~Channel()
@@ -44,8 +44,8 @@ Channel::~Channel()
 }
 
 // GETTERS
-int	Channel::get_max_users() const { return this->max_users_; }
-int	Channel::get_type() const { return this->type_; }
+int		Channel::get_max_users() const { return this->max_users_; }
+char	Channel::get_type() const { return this->type_; }
 
 string	Channel::get_channel_name() const { return this->channel_name_; }
 string	Channel::get_channel_topic() const { return this->channel_topic_; }
@@ -58,12 +58,13 @@ vector<User>	Channel::get_ban_list() const { return this->ban_list_; }
 map<char, bool>	Channel::get_mode() const { return this->mode_; }
 
 // SETTERS
-int	Channel::set_channel_topic(string topic) { this->channel_topic_ = topic; return 0; }
-int Channel::set_channel_password(string password) { this->password_ = password; return 0; }
-int Channel::set_max_users(int max_users) { this->max_users_ = max_users; return 0; }
-int Channel::set_type(char type) { this->type_ = type; return 0; }
-int Channel::set_channel_name(string channel_name) { this->channel_name_ = channel_name; return 0; }
-int Channel::set_mode(char mode, bool mode_state) { this->mode_[mode] = mode_state; return 0; }
+void	Channel::set_channel_topic(string topic) { this->channel_topic_ = topic; }
+void	Channel::set_channel_password(string password) { this->password_ = password; }
+void	Channel::set_max_users(int max_users) { this->max_users_ = max_users; }
+void	Channel::set_type(char type) { this->type_ = type; }
+void	Channel::set_channel_name(string channel_name) { this->channel_name_ = channel_name; }
+void	Channel::set_mode(char mode, bool mode_state) { this->mode_[mode] = mode_state; }
+void	Channel::set_topic(string topic) { this->channel_topic_ = topic; }
 
 // OVERLOADS
 bool Channel::operator==(const Channel& other) const { return (this->channel_name_ == other.get_channel_name()); }
@@ -77,8 +78,8 @@ bool Channel::operator==(const Channel& other) const { return (this->channel_nam
  */
 int	Channel::announce_channel(string message)
 {
-	for (int i = 0; i < this->users_.size(); i++)
-		this->users_[i].send(this->users_[i].getFd(), message.c_str(), message.length(), 0);
+	for (size_t i = 0; i < this->users_.size(); i++)
+		send(this->users_[i].getFd(), message.c_str(), message.length(), 0);
 	return 0;
 }
 
@@ -88,9 +89,9 @@ int	Channel::announce_channel(string message)
 */
 bool	Channel::channel_exists(Channel channel)
 {
-	for (int i = 0; i < Server::_channels.size(); i++)
+	for (size_t i = 0; i < Server::channels_.size(); i++)
 	{
-		if (Server::_channels[i] == channel)
+		if (Server::channels_[i] == channel)
 			return true;
 	}
 	return false;
@@ -103,9 +104,9 @@ bool	Channel::channel_exists(Channel channel)
 */
 bool	Channel::channel_exists(string channel)
 {
-	for (int i = 0; i < Server::_channels.size(); i++)
+	for (size_t i = 0; i < Server::channels_.size(); i++)
 	{
-		if (Server::_channels[i].channel_name_ == channel)
+		if (Server::channels_[i].channel_name_ == channel)
 			return true;
 	}
 	return false;
@@ -117,7 +118,7 @@ bool	Channel::channel_exists(string channel)
  */
 int		Channel::find_user(vector<User> users, User user)
 {
-	for (int i = 0; i < users.size(); i++)
+	for (size_t i = 0; i < users.size(); i++)
 	{
 		if (users[i] == user)
 			return i;
@@ -129,10 +130,11 @@ int		Channel::find_user(vector<User> users, User user)
  * 
  * 	@param users List of users in the channel
  * 	@param user User(string) to be found
+ * 	@return int
  */
 int		Channel::find_user(vector<User> users, string user)
 {
-	for (int i = 0; i < users.size(); i++)
+	for (size_t i = 0; i < users.size(); i++)
 	{
 		if (users[i].getNickname() == user)
 			return i;
@@ -158,7 +160,7 @@ void	Channel::addOperator(User user) { this->operator_list_.push_back(user); }
 */
 void	Channel::addInvite(User user) { this->invite_list_.push_back(user); }
 
-/** @brief Add a ban to a channel
+/** @brief Add a ban to a user from the channel
  * 
  * @param user User to be added
 */
@@ -176,35 +178,27 @@ void	Channel::removeUser(User user) { this->users_.erase(this->users_.begin() + 
 */
 void	Channel::removeOperator(User user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
 
+/**
+ * @brief Remove an invitee from a channel's invite list
+ * 
+ * @param user User to be removed
+ */
+void	Channel::removeInvite(User user) { this->invite_list_.erase(this->invite_list_.begin() + find_user(this->invite_list_, user)); }
+
 /** @brief Remove a banned user from a channel's banned list
  * 
  * @param user User to be banned
 */
 void	Channel::removeBan(User user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
 
-/** @brief Sets the mode of the channel
+/**
+ * @brief Remove a channel from Server::channels_ | Normally called when no users are left on channel
  * 
- * @param channel channel to be set
- * @param mode mode to be set for the channel (i, t, k, o, l)
- * @param mode_state state of the mode (true or false)
-*/
-int Channel::set_Channel_Modes(Channel channel, char mode, bool mode_state)
+ * @param channel Channel(string) to be removed from Server::channels_
+ */
+void	Channel::removeChannel(string channel)
 {
-	if (mode != 'i' || mode != 't' || mode != 'k' || mode != 'o' || mode != 'l')
-	{
-		cerr << "Error 404: " << mode << "does not exist" << endl; // Wrong error code, update it
-		return 404; // Wrong error code
-	}
-
-	if (channel_exists(channel))
-	{
-		channel.mode_[mode] = mode_state;
-	}
-	else
-	{
-		cerr << "Error 404: Channel " << channel.get_channel_name() << " does not exist" << endl; // Wrong error code, update it
-		return 404; // Wrong error code
-	}
-	cout << "Channel " << channel << "modes have been set to " << modes << endl;
-	return 0;
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+		if (Server::channels_[i].channel_name_ == channel)
+			Server::channels_.erase(Server::channels_.begin() + i);
 }
