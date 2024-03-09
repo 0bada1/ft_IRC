@@ -19,6 +19,12 @@ using namespace std;
 	this->mode_['l'] = false;
 } */
 
+/**
+ * @brief Construct a new Channel:: Channel object
+ * 
+ * @param channel_name Channel name if provided, otherwise use ""
+ * @param channelExists If a user tries to join a channel that does not exist, enter false so that the channel is not added to Server::channels_ and an error is returned
+ */
 Channel::Channel(string channel_name, bool channelExists)
 {
 	this->max_users_ = -1; // Max users are initialially unlimited, so it is set to -1
