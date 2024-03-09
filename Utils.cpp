@@ -32,15 +32,14 @@ int Utils::binarySearch(vector<T> users, T nickname, unsigned int size)
  * @param key 
  * @return int 
  */
-int	Utils::sendErrorMessage(int fd, const string& message, const int key) {
+void	Utils::sendErrorMessage(int fd, const string& message, const int key) {
 	string errorMsg = key + " ERROR: " + message;
 	send(fd, errorMsg.c_str(), strlen(errorMsg.c_str()), 0);
-	return 0;
 }
 
 User	Utils::find_User(string nickname)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i].getNickname() == nickname)
 			return Server::users_[i];
@@ -50,7 +49,7 @@ User	Utils::find_User(string nickname)
 
 User	Utils::find_User(User nickname)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i] == nickname)
 			return Server::users_[i];
@@ -58,9 +57,29 @@ User	Utils::find_User(User nickname)
 	return NULL;
 }
 
+Channel	Utils::find_Channel(string channel)
+{
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+	{
+		if (Server::channels_[i].get_channel_name() == channel)
+			return Server::channels_[i];
+	}
+	return NULL;
+}
+
+int	Utils::find_Channel(Channel channel)
+{
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+	{
+		if (Server::channels_[i] == channel)
+			return i;
+	}
+	return -1;
+}
+
 bool	Utils::username_exists(string username)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i].getUsername() == username)
 			return true;
@@ -70,7 +89,7 @@ bool	Utils::username_exists(string username)
 
 bool	Utils::nickname_exists(string nickname)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i].getNickname() == nickname)
 			return true;
@@ -80,10 +99,10 @@ bool	Utils::nickname_exists(string nickname)
 
 /** @author Mutasem mmajid-m */
 #include "includes/Server.hpp"
-#include "includes/Command.hpp"
+#include "includes/Commands.hpp"
 
 User &Utils::find(int fd) {
-	for(vector<User>::iterator it = Server::_users.begin(); it != Server::_users.end(); ++it) {
+	for(vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it) {
         if (it->_fd == fd) {
 			return *it;
         }
@@ -101,8 +120,8 @@ void Utils::signalHandler(int signum) {
 	shutdown(Server::serverSocket, SHUT_RDWR);
     close(Server::serverSocket);
 	Server::_fds.clear();
-	Server::_users.clear();
-	Server::_channels.clear();
+	Server::users_.clear();
+	Server::channels_.clear();
     exit(signum);
 }
 
@@ -114,8 +133,8 @@ void Utils::signalHandler(int signum) {
 // 	vector<User>::iterator it_i;
 
 //     Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user._fd));	
-//     Server::_users.erase(find(Server::_users.begin(), Server::_users.end(), user));
-// 	for (vector<Channel>::iterator it = Server::_channels.begin(); it != Server::_channels.end(); it++)
+//     Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
+// 	for (vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
 // 	{
 // 		it_u = it->user_in_chan(Server::sd);
 // 		it_o = it->op_in_chan(Server::sd);
@@ -258,8 +277,8 @@ void Utils::signalHandler(int signum) {
 // }
 
 User &Utils::find(int fd) {
-	for(vector<User>::iterator it = Server::_users.begin(); it != Server::_users.end(); ++it) {
-        if (it->_fd == fd) {
+	for(vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it) {
+        if (it->getFd() == fd) {
 			return *it;
         }
     }
@@ -276,7 +295,7 @@ void Utils::signalHandler(int signum) {
 	shutdown(Server::serverSocket, SHUT_RDWR);
     close(Server::serverSocket);
 	Server::_fds.clear();
-	Server::_users.clear();
-	Server::_channels.clear();
+	Server::users_.clear();
+	Server::channels_.clear();
     exit(signum);
 }
