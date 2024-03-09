@@ -17,6 +17,7 @@
 #define ERR_ALREADYREGISTRED_C      462	// " :Unauthorized command (already registered)\n"	    Returned by the server to any link which tries to change part of the registered details (such as password or user details from second USER message).
 
 using namespace std;
+class Channel;
 
 class User
 {
@@ -27,7 +28,7 @@ class User
         ~User();
 
         // OVERLOAD
-        bool    User::operator==(User const &rhs);
+        bool    operator==(User const &rhs);
 
         // METHODS
         bool    user_exists(string nickname);
@@ -45,6 +46,8 @@ class User
         void    setNickname(string nickname);
         void    setRegistered(bool isRegistered);
         void    setFd(int fd);
+        void    addChannel(Channel channel);
+        void    removeChannel(Channel channel);
         
     private:
         vector<Channel> channels_;
