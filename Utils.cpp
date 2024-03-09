@@ -44,7 +44,7 @@ User	Utils::find_User(string nickname)
 		if (Server::users_[i].getNickname() == nickname)
 			return Server::users_[i];
 	}
-	return NULL;
+	return User();
 }
 
 User	Utils::find_User(User nickname)
@@ -54,7 +54,7 @@ User	Utils::find_User(User nickname)
 		if (Server::users_[i] == nickname)
 			return Server::users_[i];
 	}
-	return NULL;
+	return User();
 }
 
 Channel	Utils::find_Channel(string channel)
@@ -64,7 +64,7 @@ Channel	Utils::find_Channel(string channel)
 		if (Server::channels_[i].get_channel_name() == channel)
 			return Server::channels_[i];
 	}
-	return NULL;
+	return Channel("", false);
 }
 
 int	Utils::find_Channel(Channel channel)
