@@ -391,7 +391,7 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
                             if (argument == "" && mode_state == true) { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C); return ERR_NEEDMOREPARAMS_C; } // No limit provided and mode_state is set to +
                             for (size_t i = 0; i < argument.size(); i++) // Check if argument is numeric (0-9)
                                 if (!std::isdigit(argument[i])) { Utils::sendErrorMessage(user.getFd(), (argument + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C); return ERR_NEEDMOREPARAMS_C; } // Limit is not numeric
-                            if (atoi(argument) > 9999) { Utils::sendErrorMessage(user.getFd(), (argument + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C); return ERR_NEEDMOREPARAMS_C; } // Limit is too high
+                            if (atoi(argument.c_str()) > 9999) { Utils::sendErrorMessage(user.getFd(), (argument + ERR_NEEDMOREPARAMS_M).c_str(), ERR_NEEDMOREPARAMS_C); return ERR_NEEDMOREPARAMS_C; } // Limit is too high
                             int   limit = atoi(argument.c_str());
                             (mode_state == true) ? channel.set_max_users(limit) : (void)argument; // Set user limit to argument or continue
                             channel.set_mode(mode, mode_state); // Set channel mode
