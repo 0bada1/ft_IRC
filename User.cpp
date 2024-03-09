@@ -39,8 +39,18 @@ void    User::setUsername(string username) { this->username_ = username; }
 void    User::setNickname(string nickname) { this->nickname_ = nickname; }
 void    User::setRegistered(bool isRegistered) { this->isRegistered_ = isRegistered; }
 void    User::setFd(int fd) { this->fd_ = fd; }
-
-
+void    User::addChannel(Channel channel) { this->channels_.push_back(channel); }
+void	User::removeChannel(Channel channel)
+{
+	for (size_t i = 0; i < this->channels_.size(); i++)
+	{
+		if (this->channels_[i] == channel)
+		{
+			this->channels_.erase(this->channels_.begin() + i);
+			break;
+		}
+	}
+}
 
 // METHODS
 /** @brief Check if a user exists
@@ -49,7 +59,7 @@ void    User::setFd(int fd) { this->fd_ = fd; }
 */
 bool	User::user_exists(User nickname)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i] == nickname)
 			return true;
@@ -64,7 +74,7 @@ bool	User::user_exists(User nickname)
 */
 bool	User::user_exists(string nickname)
 {
-	for (int i = 0; i < Server::users_.size(); i++)
+	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
 		if (Server::users_[i].nickname_ == nickname)
 			return true;
