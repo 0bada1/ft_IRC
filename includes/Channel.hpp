@@ -16,7 +16,6 @@
 // Channel error messages  (RFC 2812 section 5.2) _M = MESSAGE
 #define ERR_NOSUCHNICK_M 		" :No such nick/channel\n" // 401				Used to indicate the nickname parameter supplied to a command is currently unused.
 #define ERR_NOSUCHCHANNEL_M 	" :No such channel\n" // 403					Used to indicate the server name given currently does not exist.
-#define ERR_CANNOTSENDTOCHAN_M	" :Cannot send to channel\n" // 404				Sent to a user who is either (a) not on a channel which is mode +n or (b) not a chanop (or mode +v) on a channel which has mode +m set or where the user is banned and is trying to send a PRIVMSG message to that channel.
 #define ERR_TOOMANYCHANNELS_M 	" :You have joined too many channels\n" // 405	Sent to a user when they have joined the maximum number of allowed channels and they try to join another channel.
 #define ERR_USERNOTINCHANNEL_M	" :They aren't on that channel\n" // 441		Returned by the server to indicate that the target user of the command is not on the given channel.
 #define ERR_NOTONCHANNEL_M		" :You're not on that channel\n" // 442			Returned by the server to indicate that the target user of the command is not on the given channel.
@@ -33,7 +32,6 @@
 // Channel error codes (RFC 2812 section 5.2) _C = CODE
 #define ERR_NOSUCHNICK_C 		401	// " :No such nick/channel\n"				Used to indicate the nickname parameter supplied to a command is currently unused.
 #define ERR_NOSUCHCHANNEL_C 	403	// " :No such channel\n"					Used to indicate the server name given currently does not exist.
-#define ERR_CANNOTSENDTOCHAN_C	404	// " :Cannot send to channel\n"				Sent to a user who is either (a) not on a channel which is mode +n or (b) not a chanop (or mode +v) on a channel which has mode +m set or where the user is banned and is trying to send a PRIVMSG message to that channel.
 #define ERR_TOOMANYCHANNELS_C 	405	// " :You have joined too many channels\n"	Sent to a user when they have joined the maximum number of allowed channels and they try to join another channel.
 #define ERR_USERNOTINCHANNEL_C	441	// " :They aren't on that channel\n"		Returned by the server to indicate that the target user of the command is not on the given channel.
 #define ERR_NOTONCHANNEL_C		442 // " :You're not on that channel\n"			Returned by the server to indicate that the target user of the command is not on the given channel.
@@ -47,6 +45,12 @@
 #define ERR_BADCHANNELKEY_C 	475	// " :Cannot join channel (+k)"				Sent to a user trying to join a channel with a key when the channel has been set +k (or mode +k).
 #define ERR_CHANOPRIVSNEEDED_C	482	// " :You're not channel operator"			Any command requiring 'chanop' privileges (such as MODE messages) MUST return this error if the client making the attempt is not a chanop on the specified channel.
 
+// Other RFC messages (RFC 2812 section 5.2)
+#define  RPL_NOTOPIC_M			" :No topic is set\n" // 331					When sending a TOPIC message to determine the channel topic, one of two replies is sent.  If the topic is set, RPL_TOPIC is sent back else RPL_NOTOPIC.
+
+// Other RFC codes (RFC 2812 section 5.2)
+#define  RPL_NOTOPIC_C			331 //" :No topic is set\n"						When sending a TOPIC message to determine the channel topic, one of two replies is sent.  If the topic is set, RPL_TOPIC is sent back else RPL_NOTOPIC.
+
 // #define NOT_OPERATOR_ERROR	"Error: You're not an operator of the channel\n"
 // #define NO_USER_ERROR 		"Error: No such username\n"
 // #define NO_CHANNEL_ERROR 	"Error: No such channel\n"
@@ -54,11 +58,13 @@
 // // #define 
 
 using namespace std;
+class User;
+
 class Channel
 {
 	public:
 		// CONSTRUCTORS
-		Channel(string channel_name);
+		Channel(string channel_name, bool channelExists);
 		~Channel();
 
 		// OPERATOR OVERLOADS
@@ -78,7 +84,9 @@ class Channel
 		void	addBan(User user);
 		void	removeUser(User user);
 		void	removeOperator(User user);
+		void	removeInvite(User user);
 		void	removeBan(User user);
+		void	removeChannel(string channel);
 
 		// GETTERS
 		int				get_max_users() const;
@@ -93,12 +101,13 @@ class Channel
 		map<char, bool>	get_mode() const;
 
 		// SETTERS
-		int	set_channel_topic(string topic);
-		int set_channel_password(string password);
-		int set_max_users(int max_users);
-		int set_type(char type);
-		int set_channel_name(string channel_name);
-		int set_mode(char mode, bool mode_state);
+		void	set_channel_topic(string topic);
+		void	set_channel_password(string password);
+		void	set_max_users(int max_users);
+		void	set_type(char type);
+		void	set_channel_name(string channel_name);
+		void	set_mode(char mode, bool mode_state);
+		void	set_topic(string topic);
 
 	private:
 		unsigned int		max_users_;			// Max users allowed in channel, initially unlimited
