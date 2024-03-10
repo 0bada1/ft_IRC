@@ -10,8 +10,8 @@ Socket Programming is a method to connect two nodes over a network to establish 
 - After sharing of information is done, the nodes terminate the connection.
 
 
-### There are 2 programs that should be made
-![image](https://github.com/0bada1/ft_IRC/assets/95438648/37c49f36-5cc8-404c-925c-4c803208159d)
+### There are generally 2 programs to be made (Server and client), but we'll focus only on the server
+![image](https://raw.githubusercontent.com/TalalAlsaiaari/ft_irc/main/general.png)
 ## 1) Building The Server
 ### A. Socket Creation
 ### B. Setsockopt
