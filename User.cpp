@@ -1,12 +1,12 @@
 #include "includes/User.hpp"
+#include "includes/Channel.hpp"
 
 using namespace std;
 
 // CONSTRUCTORS
-User::User()
-{
+User::User() {}
 
-}
+User::User(int fd) : fd_(fd), isRegistered_(false), username_(""), nickname_("") {}
 
 User::User(string username, string nickname)
 {
@@ -29,6 +29,7 @@ bool    User::operator==(User const &rhs)
 
 // GETTERS
 vector<Channel> User::getChannels() const { return this->channels_; }
+string			User::getInput() const { return this->input_; }
 string          User::getUsername() const { return this->username_; }
 string          User::getNickname() const { return this->nickname_; }
 int             User::getFd() const { return this->fd_; }
@@ -80,4 +81,92 @@ bool	User::user_exists(string nickname)
 			return true;
 	}
 	return false;
+}
+
+/**
+ * @brief 
+ * 
+ * @param cmd 
+ * @param user 
+ */
+void	User::execute(string cmd, User *user)
+{
+	vector<string> splitmsg = Utils::split(cmd);
+
+	if(this->isRegistered_ == false) {
+		int user_flag = 0, nick_flag = 0, pass_flag = 0;
+		for(size_t i = 0; splitmsg.size() > 0 && i < splitmsg.size(); i++)
+		{
+			if(splitmsg.at(i) == "USER" && user_flag == 1)
+			{
+				Utils::sendErrorMessage(user->getFd(), "Unknown command\n", 421);
+				return ;
+			}
+			if(splitmsg.at(i) == "NICK" && nick_flag == 1)
+			{
+				Utils::sendErrorMessage(user->getFd(), "Unknown command\n", 421);
+				return ;
+			}
+			if(splitmsg.at(i) == "PASS" && pass_flag == 1)
+			{
+				Utils::sendErrorMessage(user->getFd(), "Unknown command\n", 421);
+				return ;
+			}
+			if(splitmsg.at(i) == "USER")
+				user_flag = 1;
+			if(splitmsg.at(i) == "NICK")
+				nick_flag = 1;
+			if(splitmsg.at(i) == "PASS")
+				pass_flag = 1;
+		}
+	}
+
+	if (!user_options(user, splitmsg))
+		return ;
+	if(!authorise(user, cmd))
+	{
+		if(splitmsg.size() > 0 && splitmsg.at(0) != "CAP"){
+			if(pass_issue != 1 && alr_reg != 1)
+			{
+				string S = ERR_NOTREGISTERED_M;
+				S.append(" You have not registered\n");
+				send(user->getFd(), S.c_str(), strlen(S.c_str()), 0);
+			}
+			else
+			{
+				Utils::closeThis(*user);
+				return ;
+			}
+		}
+	}
+
+	if(splitmsg.size() > 0 && splitmsg.at(0) == "NICK" && change_flag == false)
+		change_user(user, splitmsg);
+
+	if ((splitmsg.size() > 1 && splitmsg.at(0) == "CAP"))
+	{
+		if(splitmsg.size() >= 3 && splitmsg.at(1) == "LS" && splitmsg.at(2) == "302")
+		{
+			string S = "CAP * ACK :multi-prefix\r\n";
+			send(user->getFd(), S.c_str(), strlen(S.c_str()), 0);
+		}
+		else if (splitmsg.size() >= 2 && splitmsg.at(1) == "LS")
+		{
+			string S = "CAP * ACK :multi-prefix\r\n";
+			send(user->getFd(), S.c_str(), strlen(S.c_str()), 0);
+		}
+		else if (splitmsg.size() >= 3 && splitmsg.at(1) == "REQ" && splitmsg.at(2) == "multi-prefix")
+		{
+			string S = "CAP * ACK :multi-prefix\n";
+			send(user->getFd(), S.c_str(), strlen(S.c_str()), 0);
+		}
+	}
+
+	if(this->isRegistered_ == true)
+	{
+		user_cmds(user, splitmsg);
+		change_flag = false;
+	}
+
+	return ;
 }
