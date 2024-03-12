@@ -1,3 +1,13 @@
+/**
+ * @file Commands.cpp
+ * @authors Obada Outabachi, AbdulAziz, Mutasem Majid
+ * @brief 
+ * @version 1.0
+ * @date 2024-03-10
+ * 
+ * @copyright Copyright (c) 2024
+ */
+
 #include "includes/Commands.hpp"
 #include "includes/Channel.hpp"
 #include "includes/Utils.hpp"
