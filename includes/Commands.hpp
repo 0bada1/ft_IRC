@@ -18,6 +18,10 @@ class Commands
         Commands();
         ~Commands();
 
+		// ITERATORS
+		vector<Channel>::iterator	channel_it;
+		vector<User>::iterator		user_it;
+
         // METHODS
         int join(Channel channel, User user, string key);
         int kick(Channel channel, User user, string kicked_user, string reason);
