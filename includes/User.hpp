@@ -1,7 +1,7 @@
 #ifndef USER_HPP
 #define USER_HPP
 
-// #include "Server.hpp"
+#include "Server.hpp"
 #include "Channel.hpp"
 #include <iostream>
 #include <vector>
@@ -24,6 +24,7 @@ class User
     public:
         // CONSTRUCTORS
         User();
+		User(int fd);
         User(string username, string nickname);
         ~User();
 
@@ -33,9 +34,11 @@ class User
         // METHODS
         bool    user_exists(string nickname);
         bool    user_exists(User nickname);
+		void	execute(string cmd, User *user);
 
         // GETTERS
         vector<Channel> getChannels() const;
+		string			getInput() const;
         string          getUsername() const;
         string          getNickname() const;
         int             getFd() const;
@@ -50,11 +53,12 @@ class User
         void    removeChannel(Channel channel);
         
     private:
-        vector<Channel> channels_;
+        int     fd_;
+        bool    isRegistered_;
         string  username_;
         string  nickname_;
-        bool    isRegistered_;
-        int     fd_;
+        vector<Channel> channels_;
+		string	input_;
 
 };
 
