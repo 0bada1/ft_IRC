@@ -222,16 +222,16 @@ int Commands::privmsg(Channel channel, User user, vector<string> message)
         {
             if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                for (vector<User>::iterator it = channel.get_users().begin(); it != channel.get_users().end(); it++) // loop over all members of channel and send message
+                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
                 {
                     msg = user.getNickname() + ": ";
-                    send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+                    send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
                     for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
                     {
                         msg = message[i] + " ";
-                        send(it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                        send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
                     }
-                    send(it->getFd(), "\n", 2, 0); // Send new line to reciever
+                    send(this->user_it->getFd(), "\n", 2, 0); // Send new line to reciever
                 }
             }
             else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); return ERR_NOTONCHANNEL_C; } // User is not in channel
@@ -346,13 +346,19 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
     }
     else if (state != '+' && state != '-')
     {
-        string  message = state + ERR_UNKNOWNMODE_M;
+		stringstream	ss;
+		ss << state;
+        string  message = ss.str();
+		message = message + ERR_UNKNOWNMODE_M;
         Utils::sendErrorMessage(user.getFd(), message, ERR_UNKNOWNMODE_C);
         return -1;
     }
     else if (mode != 'i' && mode != 't' && mode != 'k' && mode != 'o' && mode != 'l')
     {
-        string  message = mode + ERR_UNKNOWNMODE_M;
+		stringstream	ss;
+		ss << mode;
+        string  message = ss.str();
+		message = message + ERR_UNKNOWNMODE_M;
         Utils::sendErrorMessage(user.getFd(), message, ERR_UNKNOWNMODE_C);
         return -1;
     }
