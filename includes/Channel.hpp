@@ -1,3 +1,4 @@
+
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
@@ -7,6 +8,9 @@
 #include <vector> // already included in Server.hpp
 #include "User.hpp"
 #include "Server.hpp"
+
+// Colors
+#define GREEN_LIGHT "\033[1;38:5:150m"
 
 // Channel modes
 // #define INVITE_ONLY_CHANNEL 50
@@ -70,23 +74,31 @@ class Channel
 		// OPERATOR OVERLOADS
 		bool operator==(const Channel& other) const;
 
+		// ITERATORS
+		vector<User>::iterator	user_it;
+		vector<User>::iterator	operator_it;
+		vector<User>::iterator	invite_it;
+
 		// METHODS
 		// int	create_channel(string channel_name);
 		// int		set_Channel_Modes(Channel channel, int mode, bool mode_state);
-		int		announce_channel(string message);
-		bool	channel_exists(Channel channel);
-		bool	channel_exists(string channel);
-		int		find_user(vector<User> users, User user); // overload to search by string (DONE)
-		int		find_user(vector<User> users, string user);
-		void	addUser(User user);
-		void	addOperator(User user);
-		void	addInvite(User user);
-		void	addBan(User user);
-		void	removeUser(User user);
-		void	removeOperator(User user);
-		void	removeInvite(User user);
-		void	removeBan(User user);
-		void	removeChannel(string channel);
+		int						announce_channel(string message);
+		bool					channel_exists(Channel channel);
+		bool					channel_exists(string channel);
+		int						find_user(vector<User> users, User user); // overload to search by string (DONE)
+		int						find_user(vector<User> users, string user);
+		vector<User>::iterator	user_index(int fd);
+		vector<User>::iterator	operator_index(int fd);
+		vector<User>::iterator	invite_index(int fd);
+		void					addUser(User user);
+		void					addOperator(User user);
+		void					addInvite(User user);
+		void					addBan(User user);
+		void					removeUser(User user);
+		void					removeOperator(User user);
+		void					removeInvite(User user);
+		void					removeBan(User user);
+		void					removeChannel(string channel);
 
 		// GETTERS
 		int				get_max_users() const;
