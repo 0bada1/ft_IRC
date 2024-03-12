@@ -50,8 +50,8 @@ void Server::run( void ) {
                 shutdown(Server::serverSocket, SHUT_RDWR); 
                 close(Server::serverSocket);
                 Server::_fds.clear();
-                Server::_users.clear();
-                Server::_channels.clear();
+                Server::users_.clear();
+                Server::channels_.clear();
                 throw ServerException( "Max clients reached" );
             }
             Server::_fds.at(i) > 0 ? 
@@ -79,8 +79,8 @@ void Server::acceptConnection() {
         throw ServerException( "Accept failed" );
     }
 
-    Server::_fds.push_back( Server::newSocket );
-    Server::_users.push_back( User( Server::newSocket, Server::newSocket - serverSocket ) );
+    Server::_fds.push_back(Server::newSocket);
+    Server::users_.push_back(User( Server::newSocket));
     std::cout << GREEN << "New connection, " << "IP is : " << inet_ntoa(Server::address.sin_addr) << 
         ", port : " << Server::_port << RESET << std::endl;
     if ( fcntl( Server::newSocket, F_SETFL, O_NONBLOCK ) < 0 ) {
@@ -107,30 +107,30 @@ void Server::handleClientMessages() {
                 close(Server::sd);
 
                 Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::sd));
-                Server::_users.erase(std::find(Server::_users.begin(), Server::_users.end(), Utils::find(Server::sd)));
-                for (std::vector<Channel>::iterator it = Server::_channels.begin(); it != Server::_channels.end(); it++)
+                Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::sd)));
+                for (std::vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
 				{
-					it_u = it->user_in_chan(Server::sd);
-					it_o = it->op_in_chan(Server::sd);
-					if (it_u != it->users.end())
-						it->users.erase(it_u);
-					if (it_o != it->operators.end())
+					it_u = it->user_index(Server::sd);
+					it_o = it->operator_index(Server::sd);
+					if (it_u != it->get_users().end())
+						it->get_users().erase(it_u);
+					if (it_o != it->get_operator_list().end())
 					{
-						it->operators.erase(it_o);
-						it_o = it->users.begin();
-						if (it_o != it->users.end() && it->operators.size() == 0)
-							it->operators.push_back(*it_o);
+						it->get_operator_list().erase(it_o);
+						it_o = it->get_users().begin();
+						if (it_o != it->get_users().end() && it->get_operator_list().size() == 0)
+							it->get_operator_list().push_back(*it_o);
 					}
-					it_i = it->inv_in_chan(Server::sd);
-					if (it_i != it->invites.end())
-						it->invites.erase(it_i);
+					it_i = it->invite_index(Server::sd);
+					if (it_i != it->get_invite_list().end())
+						it->get_invite_list().erase(it_i);
 				}
 
             } else {
                 Server::valread < BUFFER_SIZE ? Server::c_buffer[Server::valread] = '\0' : Server::c_buffer[BUFFER_SIZE - 1] = '\0';
-                for( std::vector<User>::iterator it = Server::_users.begin(); it != Server::_users.end(); ++it ) {
-                    if ( it->_fd == Server::sd ) {
-                        it->input += Server::c_buffer;
+                for( std::vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it ) {
+                    if ( it->getFd() == Server::sd ) {
+                        it->getInput() += Server::c_buffer;
                         std::string userInput( Server::c_buffer );
                         curIndex = i;
                         if ( !userInput.empty() ) {
@@ -164,6 +164,6 @@ int Server::curIndex = -1; // Initialize curIndex to an invalid value
 struct sockaddr_in Server::address; // Declare the address struct
 fd_set Server::readfds; // Declare the file descriptor set for reading
 std::vector<int> Server::_fds; // Initialize the vector of file descriptors
-std::vector<User> Server::_users; // Initialize the vector of users
-std::vector<Channel> Server::_channels; // Initialize the vector of channels
+std::vector<User> Server::users_; // Initialize the vector of users
+std::vector<Channel> Server::channels_; // Initialize the vector of channels
 int Server::addrlen = sizeof(struct sockaddr_in); // Initialize addrlen with the size of the sockaddr_in structure
