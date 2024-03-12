@@ -9,7 +9,7 @@ SRCS := main.cpp \
 		Server.cpp \
 		Channel.hpp \
 		Commands.cpp \
-		Users.cpp \
+		User.cpp \
 		Utils.cpp \
 
 
