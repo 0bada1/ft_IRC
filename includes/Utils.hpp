@@ -25,7 +25,7 @@ namespace Utils {
 	template <typename T>
 	int binarySearch(std::vector<T> users, T nickname, unsigned int size);
     // std::string to_string(int value);
-	// std::vector<std::string> split(const std::string str);
+	vector<string> split(const string str);
 	// std::string trim(std::string &str);
 	void signalHandler(int signum);
 	User &find(int fd);
