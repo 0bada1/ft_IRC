@@ -33,7 +33,10 @@ int Utils::binarySearch(vector<T> users, T nickname, unsigned int size)
  * @return int 
  */
 void	Utils::sendErrorMessage(int fd, const string& message, const int key) {
-	string errorMsg = key + " ERROR: " + message;
+	stringstream	ss;
+	ss << key;
+    string  errorMsg = ss.str();
+	errorMsg = errorMsg + " ERROR: " + message;
 	send(fd, errorMsg.c_str(), strlen(errorMsg.c_str()), 0);
 }
 
@@ -101,15 +104,6 @@ bool	Utils::nickname_exists(string nickname)
 #include "includes/Server.hpp"
 #include "includes/Commands.hpp"
 
-User &Utils::find(int fd) {
-	for(vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it) {
-        if (it->_fd == fd) {
-			return *it;
-        }
-    }
-	throw Server::ServerException("Utils::find: User not found");
-}
-
 void Utils::signalHandler(int signum) {
 
     cout << RED << "Interrupt signal (" << signum << ") received." << RESET << "\n";
@@ -123,6 +117,21 @@ void Utils::signalHandler(int signum) {
 	Server::users_.clear();
 	Server::channels_.clear();
     exit(signum);
+}
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return vector<string> 
+ */
+vector<string> Utils::split(const string str) {
+	vector<string> vector;
+	istringstream iss(str);
+	string cmd;
+	while (iss >> skipws >> cmd)
+		vector.push_back(cmd);
+	return vector;
 }
 
 // void Utils::closeThis(User &user)
@@ -159,14 +168,6 @@ void Utils::signalHandler(int signum) {
 // 	ss << value;
 // 	string s = ss.str();
 // 	return s;
-// }
-// vector<string> Utils::split(const string str) {
-// 	vector<string> vector;
-// 	istringstream iss(str);
-// 	string cmd;
-// 	while (iss >> skipws >> cmd)
-// 		vector.push_back(cmd);
-// 	return vector;
 // }
 // string Utils::trim(string &str) {
 //     size_t left = str.find_first_not_of('\n');
