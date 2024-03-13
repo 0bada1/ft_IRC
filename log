@@ -1,0 +1,72 @@
+rm -f *.o
+rm -f ircserv
+make: Warning: File 'Server.cpp' has modification time 5039 s in the future
+c++ -Wall -Wextra -Werror -std=c++98  -o ircserv main.cpp Server.cpp Channel.cpp Commands.cpp User.cpp Utils.cpp
+Server.cpp: In static member function ‘static void Server::handleClientMessages()’:
+Server.cpp:113:45: error: no matching function for call to ‘find(std::vector<int>::iterator, std::vector<int>::iterator, int&)’
+  113 |                 Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::sd));
+      |                                    ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from ./includes/Channel.hpp:5,
+                 from ./includes/User.hpp:5,
+                 from ./includes/Server.hpp:4,
+                 from Server.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Server.cpp:113:45: note:   ‘__gnu_cxx::__normal_iterator<int*, std::vector<int> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  113 |                 Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::sd));
+      |                                    ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Server.cpp:114:47: error: no matching function for call to ‘find(std::vector<User>::iterator, std::vector<User>::iterator, User&)’
+  114 |                 Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::sd)));
+      |                                      ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from ./includes/Channel.hpp:5,
+                 from ./includes/User.hpp:5,
+                 from ./includes/Server.hpp:4,
+                 from Server.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Server.cpp:114:47: note:   ‘__gnu_cxx::__normal_iterator<User*, std::vector<User> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  114 |                 Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::sd)));
+      |                                      ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+User.cpp: In member function ‘void User::execute(std::string, User*)’:
+User.cpp:124:14: error: ‘user_options’ was not declared in this scope
+  124 |         if (!user_options(user, splitmsg))
+      |              ^~~~~~~~~~~~
+User.cpp:126:13: error: ‘authorise’ was not declared in this scope
+  126 |         if(!authorise(user, cmd))
+      |             ^~~~~~~~~
+User.cpp:129:28: error: ‘pass_issue’ was not declared in this scope
+  129 |                         if(pass_issue != 1 && alr_reg != 1)
+      |                            ^~~~~~~~~~
+User.cpp:129:47: error: ‘alr_reg’ was not declared in this scope
+  129 |                         if(pass_issue != 1 && alr_reg != 1)
+      |                                               ^~~~~~~
+User.cpp:137:40: error: ‘closeThis’ is not a member of ‘Utils’
+  137 |                                 Utils::closeThis(*user);
+      |                                        ^~~~~~~~~
+User.cpp:143:63: error: ‘change_flag’ was not declared in this scope
+  143 |         if(splitmsg.size() > 0 && splitmsg.at(0) == "NICK" && change_flag == false)
+      |                                                               ^~~~~~~~~~~
+User.cpp:144:17: error: ‘change_user’ was not declared in this scope
+  144 |                 change_user(user, splitmsg);
+      |                 ^~~~~~~~~~~
+User.cpp:167:17: error: ‘user_cmds’ was not declared in this scope
+  167 |                 user_cmds(user, splitmsg);
+      |                 ^~~~~~~~~
+User.cpp:168:17: error: ‘change_flag’ was not declared in this scope
+  168 |                 change_flag = false;
+      |                 ^~~~~~~~~~~
+make: *** [Makefile:26: ircserv] Error 1
