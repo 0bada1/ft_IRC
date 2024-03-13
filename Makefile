@@ -7,7 +7,7 @@ CXXFLAGS := -Wall -Wextra -Werror -std=c++98 #-g3 -fsanitize=address
 # Source files
 SRCS := main.cpp \
 		Server.cpp \
-		Channel.hpp \
+		Channel.cpp \
 		Commands.cpp \
 		User.cpp \
 		Utils.cpp \
