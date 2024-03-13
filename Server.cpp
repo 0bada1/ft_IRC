@@ -30,6 +30,10 @@ void Server::openSocket() {
     std::cout << "Waiting for incoming connections..." << RESET << std::endl;
 }
 
+/**
+ * @brief Run the server | Accept incoming connections and handle client messages
+ * 
+ */
 void Server::run( void ) {
 
     int i = 0;
