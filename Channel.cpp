@@ -77,7 +77,7 @@ bool Channel::operator==(const Channel& other) const { return (this->channel_nam
 
 // METHODS
 /**
- * @brief Announce a message to all clients in a channel
+ * @brief Announce a message to all clients in a channel.
  * 
  * @param user User announcing to channel
  * @param message Message to be sent to channel
