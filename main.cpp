@@ -1,5 +1,5 @@
 #include "includes/Server.hpp"
-#include "includes/Users.hpp"
+#include "includes/User.hpp"
 #include "includes/Commands.hpp"
 
 // int checkInput(int argc, char *argv[])
