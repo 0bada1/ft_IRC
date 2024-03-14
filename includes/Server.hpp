@@ -43,12 +43,12 @@ public:
 	static std::string _password;
 	static std::string _hostName;
 	static std::string bufferStr;
-	static char c_buffer[MAX_BUFFER];
+	static char client_buffer[MAX_BUFFER];
 	static char c_hostName[MAX_HOST_NAME];
 	static int serverSocket;
-	static int max_sd;
-	static int sd;
-	static int valread;
+	static int max_fds;
+	static int current_fd;
+	static int received_bytes;
 	static int _port;
 	static int newSocket;
 	static int curIndex;
