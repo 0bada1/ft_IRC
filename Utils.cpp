@@ -145,8 +145,8 @@ vector<string> Utils::split(const string str) {
 //     Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
 // 	for (vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
 // 	{
-// 		it_u = it->user_in_chan(Server::sd);
-// 		it_o = it->op_in_chan(Server::sd);
+// 		it_u = it->user_in_chan(Server::current_fd);
+// 		it_o = it->op_in_chan(Server::current_fd);
 // 		if (it_u != it->users.end())
 // 			it->users.erase(it_u);
 // 		if (it_o != it->operators.end())
@@ -156,7 +156,7 @@ vector<string> Utils::split(const string str) {
 // 			if (it_o != it->users.end() && it->operators.size() == 0)
 // 				it->operators.push_back(*it_o);
 // 		}
-// 		it_i = it->inv_in_chan(Server::sd);
+// 		it_i = it->inv_in_chan(Server::current_fd);
 // 		if (it_i != it->invites.end())
 // 			it->invites.erase(it_i);
 // 	}
@@ -284,19 +284,4 @@ User &Utils::find(int fd) {
         }
     }
 	throw Server::ServerException("Utils::find: User not found");
-}
-
-void Utils::signalHandler(int signum) {
-
-    cout << RED << "Interrupt signal (" << signum << ") received." << RESET << "\n";
-
-    for(vector<int>::iterator it = Server::_fds.begin(); it != Server::_fds.end(); ++it) {
-            close(*it);
-    }
-	shutdown(Server::serverSocket, SHUT_RDWR);
-    close(Server::serverSocket);
-	Server::_fds.clear();
-	Server::users_.clear();
-	Server::channels_.clear();
-    exit(signum);
 }

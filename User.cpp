@@ -14,6 +14,7 @@ User::User(string username, string nickname)
     this->nickname_ = nickname;
     this->isRegistered_ = false;
     Server::users_.push_back(*this);
+	Server::_fds.push_back(fd);
 }
 
 User::~User() {}

@@ -36,18 +36,18 @@ void Server::openSocket() {
  */
 void Server::run( void ) {
 
-    int i = 0;
+    size_t i = 0;
     
-    for ( ;; ) 
+    while (true) 
 	{
         FD_ZERO( &Server::readfds );
         FD_SET( Server::serverSocket, &Server::readfds );
-        Server::max_sd = serverSocket;
+        Server::max_fds = serverSocket;
 
-        for ( i = 0; i < static_cast<int>(Server::_fds.size()); i++ ) {
+        for ( i = 0; i < Server::_fds.size(); i++ ) {
         
-            Server::sd = Server::_fds.at(i);
-            if ( Server::sd >= MAX_CLIENTS - 1 ) {
+            Server::current_fd = Server::_fds[i];
+            if ( Server::current_fd >= MAX_CLIENTS - 1 ) {
                 for(std::vector<int>::iterator it = Server::_fds.begin(); it != Server::_fds.end(); ++it) {
                         close(*it);
                 }
@@ -58,16 +58,15 @@ void Server::run( void ) {
                 Server::channels_.clear();
                 throw ServerException( "Max clients reached" );
             }
-            Server::_fds.at(i) > 0 ? 
-                FD_SET( Server::sd, &Server::readfds ) : 
-            ( void )0;
+            if (Server::_fds.at(i) > 0)
+                FD_SET( Server::current_fd, &Server::readfds );
 
-            if ( Server::sd > Server::max_sd )
-                Server::max_sd = Server::sd;
+            if ( Server::current_fd > Server::max_fds )
+                Server::max_fds = Server::current_fd;
         }
 
-        int activity = select( Server::max_sd + 1, &Server::readfds, NULL, NULL, NULL );
-        if ( ( activity < 0 ) && ( errno != EINTR ) ) {
+        int active_fd = select( Server::max_fds + 1, &Server::readfds, NULL, NULL, NULL );
+        if ( ( active_fd < 0 ) && ( errno != EINTR ) ) {
             throw ServerException( "Select error" );
         }
 
@@ -83,8 +82,9 @@ void Server::acceptConnection() {
         throw ServerException( "Accept failed" );
     }
 
-    Server::_fds.push_back(Server::newSocket);
-    Server::users_.push_back(User( Server::newSocket));
+	User(Sever::newSocket);
+    // Server::_fds.push_back(Server::newSocket); already pushed in User constructor
+    // Server::users_.push_back(User( Server::newSocket)); already pushed in User constructor
     std::cout << GREEN << "New connection, " << "IP is : " << inet_ntoa(Server::address.sin_addr) << 
         ", port : " << Server::_port << RESET << std::endl;
     if ( fcntl( Server::newSocket, F_SETFL, O_NONBLOCK ) < 0 ) {
@@ -99,23 +99,23 @@ void Server::handleClientMessages() {
 	std::vector<User>::iterator it_o;
 	std::vector<User>::iterator it_i;
     for ( i = 0; i < static_cast<int>( Server::_fds.size() ); i++ ) {
-        Server::sd = Server::_fds.at(i);
+        Server::current_fd = Server::_fds.at(i);
 
-        if ( FD_ISSET(Server::sd, &Server::readfds) ) {
+        if ( FD_ISSET(Server::current_fd, &Server::readfds) ) {
 		
-            if ( (Server::valread = recv(Server::sd, Server::c_buffer, BUFFER_SIZE, 0)) <= 0 ) {
+            if ( (Server::received_bytes = recv(Server::current_fd, Server::client_buffer, BUFFER_SIZE, 0)) <= 0 ) {
 
-                std::cout << RED << "Host disconnected, IP " << inet_ntoa(Server::address.sin_addr) <<
-                     ", port " << Server::_port << RESET << std::endl;
-                FD_CLR(Server::sd, &Server::readfds);
-                close(Server::sd);
+                std::cout << RED << "Host disconnected | IP: " << inet_ntoa(Server::address.sin_addr) <<
+                     " | port " << Server::_port << RESET << std::endl;
+                FD_CLR(Server::current_fd, &Server::readfds);
+                close(Server::current_fd);
 
-                Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::sd));
-                Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::sd)));
+                Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::current_fd));
+                Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::current_fd)));
                 for (std::vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
 				{
-					it_u = it->user_index(Server::sd);
-					it_o = it->operator_index(Server::sd);
+					it_u = it->user_index(Server::current_fd);
+					it_o = it->operator_index(Server::current_fd);
 					if (it_u != it->get_users().end())
 						it->get_users().erase(it_u);
 					if (it_o != it->get_operator_list().end())
@@ -125,17 +125,17 @@ void Server::handleClientMessages() {
 						if (it_o != it->get_users().end() && it->get_operator_list().size() == 0)
 							it->get_operator_list().push_back(*it_o);
 					}
-					it_i = it->invite_index(Server::sd);
+					it_i = it->invite_index(Server::current_fd);
 					if (it_i != it->get_invite_list().end())
 						it->get_invite_list().erase(it_i);
 				}
 
             } else {
-                Server::valread < BUFFER_SIZE ? Server::c_buffer[Server::valread] = '\0' : Server::c_buffer[BUFFER_SIZE - 1] = '\0';
+                Server::received_bytes < BUFFER_SIZE ? Server::client_buffer[Server::received_bytes] = '\0' : Server::client_buffer[BUFFER_SIZE - 1] = '\0';
                 for( std::vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it ) {
-                    if ( it->getFd() == Server::sd ) {
-                        it->getInput() += Server::c_buffer;
-                        std::string userInput( Server::c_buffer );
+                    if ( it->getFd() == Server::current_fd ) {
+                        it->getInput() += Server::client_buffer;
+                        std::string userInput( Server::client_buffer );
                         curIndex = i;
                         if ( !userInput.empty() ) {
                             it->execute( userInput, &( *it ) );
@@ -156,12 +156,12 @@ std::string Server::getPassword(void) {
 std::string Server::_password = ""; // Default password is an empty string
 std::string Server::bufferStr = ""; // Default buffer string is an empty string
 std::string Server::_hostName = ""; // Default host name is an empty string
-char Server::c_buffer[BUFFER_SIZE] = {0}; // Initialize buffer array to zeros
+char Server::client_buffer[BUFFER_SIZE] = {0}; // Initialize buffer array to zeros
 char Server::c_hostName[MAX_HOST_NAME] = {0}; // Initialize host name buffer to zeros
 int Server::serverSocket = -1; // Initialize the server socket to an invalid value
-int Server::max_sd = -1; // Initialize max_sd to an invalid value
-int Server::sd = -1; // Initialize sd to an invalid value
-int Server::valread = -1; // Initialize valread to an invalid value
+int Server::max_fds = -1; // Initialize max file descriptors to an invalid value
+int Server::current_fd = -1; // Initialize current file descriptor to an invalid value
+int Server::received_bytes = -1; // Initialize received_bytes to an invalid value
 int Server::_port = -1; // Initialize the port to an invalid value
 int Server::newSocket = -1; // Initialize newSocket to an invalid value
 int Server::curIndex = -1; // Initialize curIndex to an invalid value
