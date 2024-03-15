@@ -25,7 +25,7 @@ class User
         // CONSTRUCTORS
         User();
 		User(int fd);
-        User(string username, string nickname);
+        User(int fd, string username, string nickname);
         ~User();
 
         // OVERLOAD
@@ -49,16 +49,17 @@ class User
         void    setNickname(string nickname);
         void    setRegistered(bool isRegistered);
         void    setFd(int fd);
+		void	setInput(string input);
         void    addChannel(Channel channel);
         void    removeChannel(Channel channel);
         
     private:
-        int     fd_;
-        bool    isRegistered_;
-        string  username_;
-        string  nickname_;
-        vector<Channel> channels_;
-		string	input_;
+        int     fd_;				// File descriptor of client/user
+        bool    isRegistered_;		// Has user enetered password and set a username?
+        string  username_;			// Username (if any)
+        string  nickname_;			// Nickname (required)
+        vector<Channel> channels_;	// List of channels client/user has joined
+		string	input_;				// Input of client
 
 };
 

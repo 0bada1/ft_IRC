@@ -23,21 +23,22 @@ class Commands
 		vector<User>::iterator		user_it;
 
         // METHODS
-        int join(Channel channel, User user, string key);
-        int kick(Channel channel, User user, string kicked_user, string reason);
-        int invite(Channel channel, User user, string invited_user);
-        int privmsg(Channel channel, User user, vector<string> message);
-        int privmsg(string receiver, User user, vector<string> message);
-        int notice(User user, vector<string> message);
-        int notice(string receiver, User user, vector<string> message);
-        int topic(Channel channel, User user, string topic);
-        int mode (Channel channel, User user, char mode, char state, string argument);
-        int part(Channel channel, User user);
+        static int join(Channel channel, User user, string key);
+        static int kick(Channel channel, User user, string kicked_user, string reason);
+        static int invite(Channel channel, User user, string invited_user);
+        static int privmsg(Channel channel, User user, vector<string> message);
+        static int privmsg(string receiver, User user, vector<string> message);
+        static int notice(User user, vector<string> message);
+        static int notice(string receiver, User user, vector<string> message);
+        static int topic(Channel channel, User user, string topic);
+        static int mode (Channel channel, User user, char mode, char state, string argument);
+        static int part(Channel channel, User user);
 
-        int nick(string newNick, User user);
-        int user(string newUser, User user);
+        static int nick(string newNick, User user);
+        static int user(string newUser, User user);
+		static int pass(User user, string pass);
 
-        int displayChannelIntro(User user);
+        static int displayChannelIntro(User user);
         
     private:
 
