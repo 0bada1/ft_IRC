@@ -82,7 +82,7 @@ void Server::acceptConnection() {
         throw ServerException( "Accept failed" );
     }
 
-	User(Sever::newSocket);
+	User(Server::newSocket);
     // Server::_fds.push_back(Server::newSocket); already pushed in User constructor
     // Server::users_.push_back(User( Server::newSocket)); already pushed in User constructor
     std::cout << GREEN << "New connection, " << "IP is : " << inet_ntoa(Server::address.sin_addr) << 

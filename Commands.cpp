@@ -29,7 +29,7 @@ Commands::~Commands() {}
  * Case 5: User is invited to the channel. Add the user to the channel\n
  * Case 6: User is not invited to the channel. Return an error message\n
  * 
- * @param channel Channel to be joined. If the channel doesn't exist, pass Channel(<"channel_name">, false)
+ * @param channel Channel to be joined. Pass Channel(<"channel_name">, false)
  * @param user User who is joining the channel
  * @param key Password if provided. Pass "" if no password was provided
  */
@@ -97,7 +97,7 @@ int Commands::join(Channel channel, User user, string key)
  * User will be removed from Channel::users_ & Channel::operator_list_ & User::channels_
  * 
  *  @example /kick #general evaluator | /kick #general evaluator "Spamming"
- *  @param channel Channel from which the user will be kicked | If the channel doesn't exist, pass Channel("<channel_name">, false)
+ *  @param channel Channel from which the user will be kicked | Pass Channel("<channel_name">, false)
  *  @param user User who is kicking the other user
  *  @param kicked_user User(string) to be kicked 
  *  @param reason Reason for the kick | (set to "" if not provided) (default: "No reason given")
@@ -154,7 +154,7 @@ int Commands::kick(Channel channel, User user, string kicked_user, string reason
  *  @example /invite evaluator #general
  *  @note    Recheck else conditions to make sure they are correct. Wrote code while sleepy :)
  * 
- *  @param channel Channel to which the user will be invited | If the channel doesn't exist, pass Channel("<channel_name">, false)
+ *  @param channel Channel to which the user will be invited | Pass Channel("<channel_name">, false)
  *  @param user User who is inviting the other user
  *  @param invited_user User to be invited
  */
@@ -203,7 +203,7 @@ int Commands::invite(Channel channel, User user, string invited_user)
 /**
  * @brief Sends a message to a channel
  * 
- * @param channel Channel for the message to be sent | If the channel doesn't exist, pass Channel("<channel_name">, false)
+ * @param channel Channel for the message to be sent | Pass Channel("<channel_name">, false)
  * @param user User who is sending the message
  * @param message Message to be sent as a vector of strings
  */
@@ -281,7 +281,7 @@ int Commands::privmsg(string receiver, User user, vector<string> message)
  * 
  * @example /topic #general IRC | /topic #general
  * 
- * @param channel Channel to which the topic will be changed | If the channel doesn't exist, pass Channel("<channel_name">, false)
+ * @param channel Channel to which the topic will be changed | Pass Channel("<channel_name">, false)
  * @param user User who is changing the topic
  * @param topic New topic | If no topic is provided, pass "" as the argument
  */
@@ -331,7 +331,7 @@ int Commands::topic(Channel channel, User user, string topic)
  * 
  * @example /mode #general +i
  * 
- * @param channel Channel to which the mode will be changed
+ * @param channel Channel to which the mode will be changed | Pass Channel("<channel_name">, false)
  * @param user User who is changing the mode
  * @param mode New mode (i, t, k, o, l) | If user inputs unavailable mode, pass it anyways
  * @param state State of the mode (+ or -) | If user inputs invalid state, pass it anyways
@@ -560,6 +560,7 @@ int Commands::nick(string newNick, User user)
         return -1;
     }
 
+	Server::nick_flag = 1;
     user.setNickname(newNick);
     return 0;
 }
@@ -580,8 +581,25 @@ int Commands::user(string newUser, User user)
         return -1;
     }
 
+	Server::user_flag = 1;
     user.setUsername(newUser);
     return 0;
+}
+
+/**
+ * @brief Server password
+ * 
+ * @param user User entering pass
+ * @param pass Server password as a string
+ * @return int 0 on correct pass | If pass incorrect, disconnect client
+ */
+int	Commands::pass(User user, string pass)
+{
+	if (pass == Server::pass)
+		Server::pass_flag = 1;
+	else { Utils::sendErrorMessage(user.getFd(), ("Password incorrect\n").c_str(), 462), return -1; }
+	
+	return 0;
 }
 
 // COMMAND HELPERS

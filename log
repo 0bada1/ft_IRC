@@ -1,32 +1,68 @@
 rm -f *.o
 rm -f ircserv
 c++ -Wall -Wextra -Werror -std=c++98  -o ircserv main.cpp Server.cpp Channel.cpp Commands.cpp User.cpp Utils.cpp
-User.cpp:124:7: error: use of undeclared identifier 'user_options'
+Server.cpp:85:15: error: definition or redeclaration of 'newSocket' not allowed inside a function
+        User(Server::newSocket);
+             ~~~~~~~~^
+1 error generated.
+Commands.cpp:225:22: error: invalid use of 'this' outside of a non-static member function
+                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+                     ^
+Commands.cpp:225:67: error: invalid use of 'this' outside of a non-static member function
+                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+                                                                  ^
+Commands.cpp:225:111: error: invalid use of 'this' outside of a non-static member function
+                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+                                                                                                              ^
+Commands.cpp:228:26: error: invalid use of 'this' outside of a non-static member function
+                    send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+                         ^
+Commands.cpp:232:30: error: invalid use of 'this' outside of a non-static member function
+                        send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                             ^
+Commands.cpp:234:26: error: invalid use of 'this' outside of a non-static member function
+                    send(this->user_it->getFd(), "\n", 2, 0); // Send new line to reciever
+                         ^
+6 errors generated.
+User.cpp:44:12: error: variable has incomplete type 'void'
+void    User::setInput( this->input_ = input; )
+              ^
+User.cpp:44:22: error: invalid use of 'this' outside of a non-static member function
+void    User::setInput( this->input_ = input; )
+                        ^
+User.cpp:44:37: error: use of undeclared identifier 'input'
+void    User::setInput( this->input_ = input; )
+                                       ^
+User.cpp:44:45: error: expected ';' after top level declarator
+void    User::setInput( this->input_ = input; )
+                                               ^
+                                               ;
+User.cpp:126:7: error: use of undeclared identifier 'user_options'
         if (!user_options(user, splitmsg))
              ^
-User.cpp:126:6: error: use of undeclared identifier 'authorise'
+User.cpp:128:6: error: use of undeclared identifier 'authorise'
         if(!authorise(user, cmd))
             ^
-User.cpp:129:7: error: use of undeclared identifier 'pass_issue'
+User.cpp:131:7: error: use of undeclared identifier 'pass_issue'
                         if(pass_issue != 1 && alr_reg != 1)
                            ^
-User.cpp:129:26: error: use of undeclared identifier 'alr_reg'
+User.cpp:131:26: error: use of undeclared identifier 'alr_reg'
                         if(pass_issue != 1 && alr_reg != 1)
                                               ^
-User.cpp:137:12: error: no type named 'closeThis' in namespace 'Utils'
+User.cpp:139:12: error: no type named 'closeThis' in namespace 'Utils'
                                 Utils::closeThis(*user);
                                 ~~~~~~~^
-User.cpp:143:56: error: use of undeclared identifier 'change_flag'
+User.cpp:145:56: error: use of undeclared identifier 'change_flag'
         if(splitmsg.size() > 0 && splitmsg.at(0) == "NICK" && change_flag == false)
                                                               ^
-User.cpp:144:3: error: use of undeclared identifier 'change_user'
+User.cpp:146:3: error: use of undeclared identifier 'change_user'
                 change_user(user, splitmsg);
                 ^
-User.cpp:167:3: error: use of undeclared identifier 'user_cmds'
+User.cpp:169:3: error: use of undeclared identifier 'user_cmds'
                 user_cmds(user, splitmsg);
                 ^
-User.cpp:168:3: error: use of undeclared identifier 'change_flag'
+User.cpp:170:3: error: use of undeclared identifier 'change_flag'
                 change_flag = false;
                 ^
-9 errors generated.
+13 errors generated.
 make: *** [ircserv] Error 1
