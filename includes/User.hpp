@@ -52,7 +52,8 @@ class User
 		void	setInput(string input);
         void    addChannel(Channel channel);
         void    removeChannel(Channel channel);
-        
+        void    closeFd();
+
     private:
         int     fd_;				// File descriptor of client/user
         bool    isRegistered_;		// Has user enetered password and set a username?

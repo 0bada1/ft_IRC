@@ -30,6 +30,7 @@ namespace Utils {
 	void signalHandler(int signum);
 	User &find(int fd);
 	// void closeThis(User &user);
+	void	removeClient(User &user);
 }
 
 # endif // UTILS_HPP

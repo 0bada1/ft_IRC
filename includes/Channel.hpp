@@ -90,14 +90,14 @@ class Channel
 		vector<User>::iterator	user_index(int fd);
 		vector<User>::iterator	operator_index(int fd);
 		vector<User>::iterator	invite_index(int fd);
-		void					addUser(User user);
-		void					addOperator(User user);
-		void					addInvite(User user);
-		void					addBan(User user);
-		void					removeUser(User user);
-		void					removeOperator(User user);
-		void					removeInvite(User user);
-		void					removeBan(User user);
+		void					addUser(User &user);
+		void					addOperator(User &user);
+		void					addInvite(User &user);
+		void					addBan(User &user);
+		void					removeUser(User &user);
+		void					removeOperator(User &user);
+		void					removeInvite(User &user);
+		void					removeBan(User &user);
 		void					removeChannel(string channel);
 
 		// GETTERS
