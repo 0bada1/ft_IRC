@@ -134,6 +134,31 @@ vector<string> Utils::split(const string str) {
 	return vector;
 }
 
+/**
+ * @brief Remove user from server
+ * @details Close user fd, remove user from all chanenls, remove user fds from Server::_fds, remove user from Server::users_
+ * If the user is the last user in a channel, remove the channel along with its operators and invites
+ * 
+ * @param user Client to remove from server
+ */
+void	Utils::removeClient(User &user) // NOT DONE
+{
+	Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user.getFd()));
+	user.closeFd();
+	for (vector<Channel>::iterator it = user.getChannels().begin(); it != user.getChannels().end(); it++)
+	{
+		if (it->get_users().size() == 1)
+		{
+			if (it->find_user(it->get_operator_list(), user) != -1) // User is operator in channel
+				it->get_operator_list().erase(it->get_operator_list().begin()); // Remove user from operator list
+			if (it->find_user(it->get_invite_list(), user) != -1) // User is invited to channel
+				it->get_invite_list().erase(it->get_invite_list().begin()); // Remove user from invite list
+			it->removeChannel(*it); // Delete channel from Server::channels_ and user's list of channels
+		}
+	}
+	Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
+}
+
 // void Utils::closeThis(User &user)
 // {
 // 	close(user._fd);
@@ -161,7 +186,6 @@ vector<string> Utils::split(const string str) {
 // 			it->invites.erase(it_i);
 // 	}
 // }
-
 
 // string Utils::to_string(int value) {
 //     stringstream ss;

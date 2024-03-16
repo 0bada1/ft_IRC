@@ -41,7 +41,7 @@ void    User::setUsername(string username) { this->username_ = username; }
 void    User::setNickname(string nickname) { this->nickname_ = nickname; }
 void    User::setRegistered(bool isRegistered) { this->isRegistered_ = isRegistered; }
 void    User::setFd(int fd) { this->fd_ = fd; }
-void	User::setInput( this->input_ = input; )
+void	User::setInput(string input){ this->input_ = input; }
 void    User::addChannel(Channel channel) { this->channels_.push_back(channel); }
 void	User::removeChannel(Channel channel)
 {
@@ -54,6 +54,7 @@ void	User::removeChannel(Channel channel)
 		}
 	}
 }
+void	User::closeFd() { close(this->fd_); }
 
 // METHODS
 /** @brief Check if a user exists

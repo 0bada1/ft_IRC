@@ -1,68 +1,215 @@
 rm -f *.o
 rm -f ircserv
+make: Warning: File 'Utils.cpp' has modification time 80 s in the future
 c++ -Wall -Wextra -Werror -std=c++98  -o ircserv main.cpp Server.cpp Channel.cpp Commands.cpp User.cpp Utils.cpp
-Server.cpp:85:15: error: definition or redeclaration of 'newSocket' not allowed inside a function
-        User(Server::newSocket);
-             ~~~~~~~~^
-1 error generated.
-Commands.cpp:225:22: error: invalid use of 'this' outside of a non-static member function
-                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
-                     ^
-Commands.cpp:225:67: error: invalid use of 'this' outside of a non-static member function
-                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
-                                                                  ^
-Commands.cpp:225:111: error: invalid use of 'this' outside of a non-static member function
-                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
-                                                                                                              ^
-Commands.cpp:228:26: error: invalid use of 'this' outside of a non-static member function
-                    send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
-                         ^
-Commands.cpp:232:30: error: invalid use of 'this' outside of a non-static member function
-                        send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
-                             ^
-Commands.cpp:234:26: error: invalid use of 'this' outside of a non-static member function
-                    send(this->user_it->getFd(), "\n", 2, 0); // Send new line to reciever
-                         ^
-6 errors generated.
-User.cpp:44:12: error: variable has incomplete type 'void'
-void    User::setInput( this->input_ = input; )
-              ^
-User.cpp:44:22: error: invalid use of 'this' outside of a non-static member function
-void    User::setInput( this->input_ = input; )
-                        ^
-User.cpp:44:37: error: use of undeclared identifier 'input'
-void    User::setInput( this->input_ = input; )
-                                       ^
-User.cpp:44:45: error: expected ';' after top level declarator
-void    User::setInput( this->input_ = input; )
-                                               ^
-                                               ;
-User.cpp:126:7: error: use of undeclared identifier 'user_options'
-        if (!user_options(user, splitmsg))
-             ^
-User.cpp:128:6: error: use of undeclared identifier 'authorise'
-        if(!authorise(user, cmd))
-            ^
-User.cpp:131:7: error: use of undeclared identifier 'pass_issue'
-                        if(pass_issue != 1 && alr_reg != 1)
-                           ^
-User.cpp:131:26: error: use of undeclared identifier 'alr_reg'
-                        if(pass_issue != 1 && alr_reg != 1)
-                                              ^
-User.cpp:139:12: error: no type named 'closeThis' in namespace 'Utils'
-                                Utils::closeThis(*user);
-                                ~~~~~~~^
-User.cpp:145:56: error: use of undeclared identifier 'change_flag'
-        if(splitmsg.size() > 0 && splitmsg.at(0) == "NICK" && change_flag == false)
-                                                              ^
-User.cpp:146:3: error: use of undeclared identifier 'change_user'
-                change_user(user, splitmsg);
-                ^
-User.cpp:169:3: error: use of undeclared identifier 'user_cmds'
-                user_cmds(user, splitmsg);
-                ^
-User.cpp:170:3: error: use of undeclared identifier 'change_flag'
-                change_flag = false;
-                ^
-13 errors generated.
-make: *** [ircserv] Error 1
+main.cpp: In function ‘int main(int, char**)’:
+main.cpp:36:29: error: ‘atoi’ is not a member of ‘std’; did you mean ‘atoi’?
+   36 |         int port_num = std::atoi(argv[1]);
+      |                             ^~~~
+In file included from /usr/include/c++/11/bits/std_abs.h:38,
+                 from /usr/include/c++/11/cmath:47,
+                 from /usr/include/c++/11/math.h:36,
+                 from includes/Server.hpp:18,
+                 from main.cpp:1:
+/usr/include/stdlib.h:105:12: note: ‘atoi’ declared here
+  105 | extern int atoi (const char *__nptr)
+      |            ^~~~
+Server.cpp: In static member function ‘static void Server::handleClientMessages()’:
+Server.cpp:113:45: error: no matching function for call to ‘find(std::vector<int>::iterator, std::vector<int>::iterator, int&)’
+  113 |                 Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::current_fd));
+      |                                    ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from ./includes/Channel.hpp:5,
+                 from ./includes/User.hpp:5,
+                 from ./includes/Server.hpp:4,
+                 from Server.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Server.cpp:113:45: note:   ‘__gnu_cxx::__normal_iterator<int*, std::vector<int> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  113 |                 Server::_fds.erase(std::find(Server::_fds.begin(), Server::_fds.end(), Server::current_fd));
+      |                                    ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Server.cpp:114:47: error: no matching function for call to ‘find(std::vector<User>::iterator, std::vector<User>::iterator, User&)’
+  114 |                 Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::current_fd)));
+      |                                      ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from ./includes/Channel.hpp:5,
+                 from ./includes/User.hpp:5,
+                 from ./includes/Server.hpp:4,
+                 from Server.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Server.cpp:114:47: note:   ‘__gnu_cxx::__normal_iterator<User*, std::vector<User> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  114 |                 Server::users_.erase(std::find(Server::users_.begin(), Server::users_.end(), Utils::find(Server::current_fd)));
+      |                                      ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Commands.cpp: In static member function ‘static int Commands::kick(Channel, User, std::string, std::string)’:
+Commands.cpp:123:60: error: cannot bind non-const lvalue reference of type ‘User&’ to an rvalue of type ‘User’
+  123 |                         channel.removeUser(Utils::find_User(kicked_user)); // Remove user from channel
+      |                                            ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+In file included from includes/Commands.hpp:9,
+                 from Commands.cpp:11:
+includes/Channel.hpp:97:74: note:   initializing argument 1 of ‘void Channel::removeUser(User&)’
+   97 |                 void                                    removeUser(User &user);
+      |                                                                    ~~~~~~^~~~
+Commands.cpp:125:151: error: cannot bind non-const lvalue reference of type ‘User&’ to an rvalue of type ‘User’
+  125 |                         (channel.find_user(channel.get_operator_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeOperator(Utils::find_User(kicked_user)) : (void)kicked_user;
+      |                                                                                                                                       ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+In file included from includes/Commands.hpp:9,
+                 from Commands.cpp:11:
+includes/Channel.hpp:98:78: note:   initializing argument 1 of ‘void Channel::removeOperator(User&)’
+   98 |                 void                                    removeOperator(User &user);
+      |                                                                        ~~~~~~^~~~
+Commands.cpp:126:147: error: cannot bind non-const lvalue reference of type ‘User&’ to an rvalue of type ‘User’
+  126 |                         (channel.find_user(channel.get_invite_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeInvite(Utils::find_User(kicked_user)) : (void)kicked_user;
+      |                                                                                                                                   ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+In file included from includes/Commands.hpp:9,
+                 from Commands.cpp:11:
+includes/Channel.hpp:99:76: note:   initializing argument 1 of ‘void Channel::removeInvite(User&)’
+   99 |                 void                                    removeInvite(User &user);
+      |                                                                      ~~~~~~^~~~
+Commands.cpp: In static member function ‘static int Commands::invite(Channel, User, std::string)’:
+Commands.cpp:181:61: error: cannot bind non-const lvalue reference of type ‘User&’ to an rvalue of type ‘User’
+  181 |                             channel.addUser(Utils::find_User(invited_user));
+      |                                             ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+In file included from includes/Commands.hpp:9,
+                 from Commands.cpp:11:
+includes/Channel.hpp:93:71: note:   initializing argument 1 of ‘void Channel::addUser(User&)’
+   93 |                 void                                    addUser(User &user);
+      |                                                                 ~~~~~~^~~~
+Commands.cpp: In static member function ‘static int Commands::privmsg(Channel, User, std::vector<std::__cxx11::basic_string<char> >)’:
+Commands.cpp:225:22: error: ‘this’ is unavailable for static member functions
+  225 |                 for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+      |                      ^~~~
+Commands.cpp:225:67: error: ‘this’ is unavailable for static member functions
+  225 |                 for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+      |                                                                   ^~~~
+Commands.cpp:225:111: error: ‘this’ is unavailable for static member functions
+  225 |                 for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+      |                                                                                                               ^~~~
+Commands.cpp:228:26: error: ‘this’ is unavailable for static member functions
+  228 |                     send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+      |                          ^~~~
+Commands.cpp:232:30: error: ‘this’ is unavailable for static member functions
+  232 |                         send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+      |                              ^~~~
+Commands.cpp:234:26: error: ‘this’ is unavailable for static member functions
+  234 |                     send(this->user_it->getFd(), "\n", 2, 0); // Send new line to reciever
+      |                          ^~~~
+Commands.cpp: In static member function ‘static int Commands::nick(std::string, User)’:
+Commands.cpp:563:17: error: ‘nick_flag’ is not a member of ‘Server’
+  563 |         Server::nick_flag = 1;
+      |                 ^~~~~~~~~
+Commands.cpp: In static member function ‘static int Commands::user(std::string, User)’:
+Commands.cpp:584:17: error: ‘user_flag’ is not a member of ‘Server’
+  584 |         Server::user_flag = 1;
+      |                 ^~~~~~~~~
+Commands.cpp: In static member function ‘static int Commands::pass(User, std::string)’:
+Commands.cpp:598:29: error: ‘pass’ is not a member of ‘Server’
+  598 |         if (pass == Server::pass)
+      |                             ^~~~
+Commands.cpp:599:25: error: ‘pass_flag’ is not a member of ‘Server’
+  599 |                 Server::pass_flag = 1;
+      |                         ^~~~~~~~~
+Commands.cpp:600:79: error: request for member ‘c_str’ in ‘("Password incorrect\012")’, which is of non-class type ‘const char [20]’
+  600 |         else { Utils::sendErrorMessage(user.getFd(), ("Password incorrect\n").c_str(), 462), return -1; }
+      |                                                                               ^~~~~
+Commands.cpp:600:94: error: expected primary-expression before ‘return’
+  600 |         else { Utils::sendErrorMessage(user.getFd(), ("Password incorrect\n").c_str(), 462), return -1; }
+      |                                                                                              ^~~~~~
+User.cpp: In member function ‘void User::execute(std::string, User*)’:
+User.cpp:127:14: error: ‘user_options’ was not declared in this scope
+  127 |         if (!user_options(user, splitmsg))
+      |              ^~~~~~~~~~~~
+User.cpp:129:13: error: ‘authorise’ was not declared in this scope
+  129 |         if(!authorise(user, cmd))
+      |             ^~~~~~~~~
+User.cpp:132:28: error: ‘pass_issue’ was not declared in this scope
+  132 |                         if(pass_issue != 1 && alr_reg != 1)
+      |                            ^~~~~~~~~~
+User.cpp:132:47: error: ‘alr_reg’ was not declared in this scope
+  132 |                         if(pass_issue != 1 && alr_reg != 1)
+      |                                               ^~~~~~~
+User.cpp:140:40: error: ‘closeThis’ is not a member of ‘Utils’
+  140 |                                 Utils::closeThis(*user);
+      |                                        ^~~~~~~~~
+User.cpp:146:63: error: ‘change_flag’ was not declared in this scope
+  146 |         if(splitmsg.size() > 0 && splitmsg.at(0) == "NICK" && change_flag == false)
+      |                                                               ^~~~~~~~~~~
+User.cpp:147:17: error: ‘change_user’ was not declared in this scope
+  147 |                 change_user(user, splitmsg);
+      |                 ^~~~~~~~~~~
+User.cpp:170:17: error: ‘user_cmds’ was not declared in this scope
+  170 |                 user_cmds(user, splitmsg);
+      |                 ^~~~~~~~~
+User.cpp:171:17: error: ‘change_flag’ was not declared in this scope
+  171 |                 change_flag = false;
+      |                 ^~~~~~~~~~~
+Utils.cpp: In function ‘void Utils::removeClient(User&)’:
+Utils.cpp:146:32: error: no matching function for call to ‘find(std::vector<int>::iterator, std::vector<int>::iterator, int)’
+  146 |         Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user.getFd()));
+      |                            ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from includes/Utils.hpp:4,
+                 from Utils.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Utils.cpp:146:32: note:   ‘__gnu_cxx::__normal_iterator<int*, std::vector<int> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  146 |         Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user.getFd()));
+      |                            ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from Utils.cpp:1:
+includes/Utils.hpp:31:15: note: candidate: ‘User& Utils::find(int)’
+   31 |         User &find(int fd);
+      |               ^~~~
+includes/Utils.hpp:31:15: note:   candidate expects 1 argument, 3 provided
+Utils.cpp:156:43: error: cannot convert ‘Channel’ to ‘std::string’ {aka ‘std::__cxx11::basic_string<char>’}
+  156 |                         it->removeChannel(*it); // Delete channel from Server::channels_ and user's list of channels
+      |                                           ^~~
+      |                                           |
+      |                                           Channel
+In file included from includes/User.hpp:5,
+                 from includes/Server.hpp:4,
+                 from includes/Utils.hpp:8,
+                 from Utils.cpp:1:
+includes/Channel.hpp:101:78: note:   initializing argument 1 of ‘void Channel::removeChannel(std::string)’
+  101 |                 void                                    removeChannel(string channel);
+      |                                                                       ~~~~~~~^~~~~~~
+Utils.cpp:159:34: error: no matching function for call to ‘find(std::vector<User>::iterator, std::vector<User>::iterator, User&)’
+  159 |         Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
+      |                              ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/11/bits/locale_facets.h:48,
+                 from /usr/include/c++/11/bits/basic_ios.h:37,
+                 from /usr/include/c++/11/ios:44,
+                 from /usr/include/c++/11/ostream:38,
+                 from /usr/include/c++/11/iostream:39,
+                 from includes/Utils.hpp:4,
+                 from Utils.cpp:1:
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note: candidate: ‘template<class _CharT2> typename __gnu_cxx::__enable_if<std::__is_char<_CharT2>::__value, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> > >::__type std::find(std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >, const _CharT2&)’
+  421 |     find(istreambuf_iterator<_CharT> __first,
+      |     ^~~~
+/usr/include/c++/11/bits/streambuf_iterator.h:421:5: note:   template argument deduction/substitution failed:
+Utils.cpp:159:34: note:   ‘__gnu_cxx::__normal_iterator<User*, std::vector<User> >’ is not derived from ‘std::istreambuf_iterator<_CharT, std::char_traits<_CharT> >’
+  159 |         Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
+      |                              ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from Utils.cpp:1:
+includes/Utils.hpp:31:15: note: candidate: ‘User& Utils::find(int)’
+   31 |         User &find(int fd);
+      |               ^~~~
+includes/Utils.hpp:31:15: note:   candidate expects 1 argument, 3 provided
+make: *** [Makefile:26: ircserv] Error 1

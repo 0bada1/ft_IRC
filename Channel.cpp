@@ -203,50 +203,50 @@ vector<User>::iterator	Channel::invite_index(int fd)
  * 
  * @param user User to be added
 */
-void	Channel::addUser(User user) { this->users_.push_back(user); }
+void	Channel::addUser(User &user) { this->users_.push_back(user); }
 
 /** @brief Add an operator to a channel
  * 
  * @param user User to be added
 */
-void	Channel::addOperator(User user) { this->operator_list_.push_back(user); }
+void	Channel::addOperator(User &user) { this->operator_list_.push_back(user); }
 
 /** @brief Add an invite to a channel
  * 
  * @param user User to be added
 */
-void	Channel::addInvite(User user) { this->invite_list_.push_back(user); }
+void	Channel::addInvite(User &user) { this->invite_list_.push_back(user); }
 
 /** @brief Add a ban to a user from the channel
  * 
  * @param user User to be added
 */
-void	Channel::addBan(User user) { this->ban_list_.push_back(user); }
+void	Channel::addBan(User &user) { this->ban_list_.push_back(user); }
 
 /** @brief Remove a user from a channel
  * 
  * @param user User to be removed
 */
-void	Channel::removeUser(User user) { this->users_.erase(this->users_.begin() + find_user(this->users_, user)); }
+void	Channel::removeUser(User &user) { this->users_.erase(this->users_.begin() + find_user(this->users_, user)); }
 
 /** @brief Remove an operator from a channel
  * 
  * @param user User to be removed
 */
-void	Channel::removeOperator(User user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
+void	Channel::removeOperator(User &user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
 
 /**
  * @brief Remove an invitee from a channel's invite list
  * 
  * @param user User to be removed
  */
-void	Channel::removeInvite(User user) { this->invite_list_.erase(this->invite_list_.begin() + find_user(this->invite_list_, user)); }
+void	Channel::removeInvite(User &user) { this->invite_list_.erase(this->invite_list_.begin() + find_user(this->invite_list_, user)); }
 
 /** @brief Remove a banned user from a channel's banned list
  * 
  * @param user User to be banned
 */
-void	Channel::removeBan(User user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
+void	Channel::removeBan(User &user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
 
 /**
  * @brief Remove a channel from Server::channels_ | Normally called when no users are left on channel
@@ -258,4 +258,8 @@ void	Channel::removeChannel(string channel)
 	for (size_t i = 0; i < Server::channels_.size(); i++)
 		if (Server::channels_[i].channel_name_ == channel)
 			Server::channels_.erase(Server::channels_.begin() + i);
+	for (size_t i = 0; i < Server::users_.size(); i++)
+		for (size_t j = 0; j < Server::users_[i].getChannels().size(); j++)
+			if (Server::users_[i].getChannels()[j].get_channel_name() == channel)
+				Server::users_[i].removeChannel(Server::users_[i].getChannels()[j]);
 }
