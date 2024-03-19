@@ -87,17 +87,20 @@ class Channel
 		bool					channel_exists(string channel);
 		int						find_user(vector<User> users, User user); // overload to search by string (DONE)
 		int						find_user(vector<User> users, string user);
-		vector<User>::iterator	user_index(int fd);
-		vector<User>::iterator	operator_index(int fd);
-		vector<User>::iterator	invite_index(int fd);
-		void					addUser(User &user);
-		void					addOperator(User &user);
-		void					addInvite(User &user);
-		void					addBan(User &user);
-		void					removeUser(User &user);
-		void					removeOperator(User &user);
-		void					removeInvite(User &user);
-		void					removeBan(User &user);
+		vector<User>::iterator	&user_index(int fd);
+		vector<User>::iterator	&operator_index(int fd);
+		vector<User>::iterator	&invite_index(int fd);
+		// size_t					user_index(int fd);
+		// size_t					operator_index(int fd);
+		// size_t					invite_index(int fd);
+		void					addUser(const User &user);
+		void					addOperator(const User &user);
+		void					addInvite(const User &user);
+		void					addBan(const User &user);
+		void					removeUser(const User &user);
+		void					removeOperator(const User &user);
+		void					removeInvite(const User &user);
+		void					removeBan(const User &user);
 		void					removeChannel(string channel);
 
 		// GETTERS
@@ -106,11 +109,11 @@ class Channel
 		string			get_channel_name() const;
 		string			get_channel_topic() const;
 		string			get_password() const;
-		vector<User>	get_users() const;
-		vector<User>	get_operator_list() const;
-		vector<User>	get_invite_list() const;
-		vector<User>	get_ban_list() const;
-		map<char, bool>	get_mode() const;
+		vector<User>	&get_users();
+		vector<User>	&get_operator_list();
+		vector<User>	&get_invite_list();
+		vector<User>	&get_ban_list();
+		map<char, bool>	&get_mode();
 
 		// SETTERS
 		void	set_channel_topic(string topic);
@@ -128,7 +131,7 @@ class Channel
 		string				channel_topic_;		// Channel topic, initially empty
 		string				password_;			// Password for channel, initially empty
 		map<char, bool>		mode_;				// 0/false for off, 1/true for on
-		vector<User>		users_;				// List of users in channel
+		vector<User>		users_;			// List of users in channel
 		vector<User>		operator_list_;		// List of operators in channel
 		vector<User>		invite_list_;		// List of users invited to channel
 		vector<User>		ban_list_;			// List of banned users

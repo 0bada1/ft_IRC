@@ -33,19 +33,20 @@ Commands::~Commands() {}
  * @param user User who is joining the channel
  * @param key Password if provided. Pass "" if no password was provided
  */
-int Commands::join(Channel channel, User user, string key)
+int Commands::join(Channel &channel, User &user, string key)
 {
-    if (channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NEEDMOREPARAMS_M, ERR_NEEDMOREPARAMS_C);
         return -1;
     }
+	cout << user.getNickname() << endl;
 
     if (user.isRegistered() == true) // User is registered
     {    
         if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (channel.find_user(channel.get_users(), user) >= 0) // User is not in channel
+            if (channel.find_user(channel.get_users(), user) < 0) // User is not in channel
             {
                 if (channel.find_user(channel.get_ban_list(), user) < 0) // User is not banned from channel
                 {
@@ -57,6 +58,7 @@ int Commands::join(Channel channel, User user, string key)
                             {
                                 if (user.getChannels().size() + 1 <= 10) // Max channels have not been joined
                                 {
+									cout << user.getNickname() << " has joined " << channel.get_channel_name() << endl;
                                     channel.addUser(user); // Add user to channel
                                     if (channel.get_users().size() == 1) // If only user in channel
                                         channel.addOperator(user); // Make user an operator
@@ -81,9 +83,15 @@ int Commands::join(Channel channel, User user, string key)
         else // Channel doesn't exist | Create new channel
         {
             Channel new_channel(channel.get_channel_name(), true);
+			if (key != "")
+			{
+				new_channel.set_mode('k', true);
+				new_channel.set_channel_password(key);
+			}
             new_channel.addUser(user);
             new_channel.addOperator(user);
             user.addChannel(new_channel);
+			Server::channels_.push_back(new_channel);
             displayChannelIntro(user);
         }
     }
@@ -95,6 +103,7 @@ int Commands::join(Channel channel, User user, string key)
 /** @brief Kicks a user from a channel. The user kicking the other user must be an operator.\n
  * If the user is not an operator, the function will return an error message #ERR_CHANOPRIVSNEEDED\n
  * User will be removed from Channel::users_ & Channel::operator_list_ & User::channels_
+ * @bug can kick self. Shouldn't be possible (FIXED)
  * 
  *  @example /kick #general evaluator | /kick #general evaluator "Spamming"
  *  @param channel Channel from which the user will be kicked | Pass Channel("<channel_name">, false)
@@ -102,9 +111,9 @@ int Commands::join(Channel channel, User user, string key)
  *  @param kicked_user User(string) to be kicked 
  *  @param reason Reason for the kick | (set to "" if not provided) (default: "No reason given")
 **/
-int Commands::kick(Channel channel, User user, string kicked_user, string reason)
+int Commands::kick(Channel &channel, User &user, string kicked_user, string reason)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         Utils::sendErrorMessage(user.getFd(), channel.get_channel_name() + ERR_NOSUCHCHANNEL_M, ERR_NOSUCHCHANNEL_C);
         return -1;
@@ -120,21 +129,27 @@ int Commands::kick(Channel channel, User user, string kicked_user, string reason
                 {
                     if (channel.find_user(channel.get_users(), kicked_user) >= 0) // Kicked user is in channel
                     {
-                        channel.removeUser(Utils::find_User(kicked_user)); // Remove user from channel
-                        Utils::find_User(kicked_user).removeChannel(channel); // Remove channel from user's list of channels
-                        (channel.find_user(channel.get_operator_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeOperator(Utils::find_User(kicked_user)) : (void)kicked_user;
-                        (channel.find_user(channel.get_invite_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeInvite(Utils::find_User(kicked_user)) : (void)kicked_user;
-                        
-                        string  message = (user.getNickname() + " has kicked " + Utils::find_User(kicked_user).getNickname() + " from " + channel.get_channel_name());
-                        send(user.getFd(), message.c_str(), strlen(message.c_str()), 0);
-                        
-                        if (reason != "")
-                        {
-                            message = " Reason: " + reason + "\n";
-                            send(user.getFd(), message.c_str(), strlen(message.c_str()), 0);
-                        }
-                        else
-                            send(user.getFd(), " Reason: No reason given\n", 26, 0);
+						if (!(Utils::find_User(kicked_user) == user)) // User is not kicking self
+						{
+							Utils::find_User(kicked_user).removeChannel(channel); // Remove channel from user's list of channels
+							(channel.find_user(channel.get_operator_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeOperator(Utils::find_User(kicked_user)) : (void)kicked_user; // Remove user from operator list if they're operator
+							(channel.find_user(channel.get_invite_list(), Utils::find_User(kicked_user)) >= 0) ? channel.removeInvite(Utils::find_User(kicked_user)) : (void)kicked_user; // Remove user from invite list if they're in invite list
+							channel.removeUser(Utils::find_User(kicked_user)); // Remove user from channel
+							string message = "You have been kicked from " + channel.get_channel_name() + " Reason: " + reason + "\n";
+							send(Utils::find_User(kicked_user).getFd(), message.c_str(), strlen(message.c_str()), 0);
+							
+							message = (user.getNickname() + " has kicked " + Utils::find_User(kicked_user).getNickname() + " from " + channel.get_channel_name());
+							channel.announce_channel(message.c_str());
+							
+							if (reason != "")
+							{
+								message = " Reason: " + reason + "\n";
+								channel.announce_channel(message.c_str());
+							}
+							else
+								channel.announce_channel(" Reason: No reason given\n");
+						}
+						else { Utils::sendErrorMessage(user.getFd(), " :You cannot kick yourself", ERR_USERNOTINCHANNEL_C); return ERR_USERNOTINCHANNEL_C; } // User is kicking self
                     }
                     else { Utils::sendErrorMessage(user.getFd(), (Utils::find_User(kicked_user).getNickname() + " " + channel.get_channel_name() + ERR_USERNOTINCHANNEL_M).c_str(), ERR_USERNOTINCHANNEL_C); return ERR_USERNOTINCHANNEL_C; } // Kicked user not in channel
                 }   
@@ -158,9 +173,9 @@ int Commands::kick(Channel channel, User user, string kicked_user, string reason
  *  @param user User who is inviting the other user
  *  @param invited_user User to be invited
  */
-int Commands::invite(Channel channel, User user, string invited_user)
+int Commands::invite(Channel &channel, User &user, string invited_user)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C); // Rewrite error message
         return -1;
@@ -172,18 +187,16 @@ int Commands::invite(Channel channel, User user, string invited_user)
         {
             if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                if ((channel.get_mode()['i'] == true && channel.find_user(channel.get_operator_list(), user) >= 0) || channel.get_mode()['i'] == false) // Channel is invite only and user is an operator or channel is not invite only
+                if ((channel.find_user(channel.get_operator_list(), user) >= 0) || channel.get_mode()['i'] == false) // (User is an operator) or (channel is not invite only)
                 {
-                    if (channel.find_user(channel.get_users(), invited_user) == false) // Invited user is not in channel
+                    if (channel.find_user(channel.get_users(), invited_user) < 0) // Invited user is not in channel
                     {
-                        if (channel.find_user(channel.get_ban_list(), invited_user) == false) // User is not banned from channel
+                        if (channel.find_user(channel.get_ban_list(), invited_user) < 0) // User is not banned from channel
                         {
-                            channel.addUser(Utils::find_User(invited_user));
-                            Utils::find_User(invited_user).addChannel(channel);
                             string  message = "You have been invited to " + channel.get_channel_name() + " by " + user.getNickname() + "\n";
                             send(Utils::find_User(invited_user).getFd(), message.c_str(), strlen(message.c_str()), 0); // Invited user recieves message
                             message = invited_user + " has been invited to " + channel.get_channel_name() + "\n";
-                            send(user.getFd(), message.c_str(), strlen(message.c_str()), 0); // Inviting user recieves message
+							channel.announce_channel(message);
                         }
                         else { Utils::sendErrorMessage(user.getFd(), (invited_user + " " + channel.get_channel_name() + ERR_BANNEDFROMCHAN_M).c_str(), ERR_BANNEDFROMCHAN_C); return ERR_BANNEDFROMCHAN_C; } // User is banned from channel
                     }
@@ -207,13 +220,16 @@ int Commands::invite(Channel channel, User user, string invited_user)
  * @param user User who is sending the message
  * @param message Message to be sent as a vector of strings
  */
-int Commands::privmsg(Channel channel, User user, vector<string> message)
+int Commands::privmsg(Channel &channel, User &user, vector<string> message)
 {
     if (channel.channel_exists(channel) == false)
     {
         Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
         return ERR_NOSUCHCHANNEL_C;
     }
+	cout << "I AM HERE" << endl;
+	for (size_t i = 0; i < channel.get_users().size(); i++)
+		cout << "PRIVMSG: " << channel.get_users()[i].getNickname() << endl;
 
     string  msg;
     if (user.isRegistered() == true)
@@ -222,16 +238,16 @@ int Commands::privmsg(Channel channel, User user, vector<string> message)
         {
             if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                for (this->user_it = channel.get_users().begin(); this->user_it != channel.get_users().end(); this->user_it++) // loop over all members of channel and send message
+				for (size_t i = 0; i < channel.get_users().size(); i++)
                 {
                     msg = user.getNickname() + ": ";
-                    send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
-                    for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
+                    send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+                    for (size_t j = 0; j < message.size(); j++) // loop over all strings in message
                     {
-                        msg = message[i] + " ";
-                        send(this->user_it->getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+                        msg = message[j] + " ";
+                        send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
                     }
-                    send(this->user_it->getFd(), "\n", 2, 0); // Send new line to reciever
+                    send(channel.get_users()[i].getFd(), "\n", 2, 0); // Send new line to reciever
                 }
             }
             else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); return ERR_NOTONCHANNEL_C; } // User is not in channel
@@ -250,7 +266,7 @@ int Commands::privmsg(Channel channel, User user, vector<string> message)
  * @param user User who is sending the message
  * @param message Message to be sent as a vector of strings separated by spaces, so no spaces in any element
  */
-int Commands::privmsg(string receiver, User user, vector<string> message)
+int Commands::privmsg(string receiver, User &user, vector<string> message)
 {
     if (user.isRegistered() == true)
     {
@@ -280,14 +296,15 @@ int Commands::privmsg(string receiver, User user, vector<string> message)
  * @brief Changes the topic of a channel. Topic will be displayed when a user joins the channel or when the /topic command is used
  * 
  * @example /topic #general IRC | /topic #general
+ * @bug	User is not operator and has provided topic. Wrong error message
  * 
  * @param channel Channel to which the topic will be changed | Pass Channel("<channel_name">, false)
  * @param user User who is changing the topic
  * @param topic New topic | If no topic is provided, pass "" as the argument
  */
-int Commands::topic(Channel channel, User user, string topic)
+int Commands::topic(Channel &channel, User &user, string topic)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         send(user.getFd(), "Usage: /topic #<channel> <topic>\n", 34, 0); // Rewrite error message
         return -1;
@@ -297,9 +314,9 @@ int Commands::topic(Channel channel, User user, string topic)
     {
         if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (channel.find_user(channel.get_users(), user) == true) // User is in channel
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                if ((channel.get_mode()['t'] == true && channel.find_user(channel.get_operator_list(), user) == true) || (channel.get_mode()['t'] == false && topic == "")) // (Channel is topic privileged and user is an operator) or (channel is not topic privileged, but a topic was not provided)
+                if ((channel.find_user(channel.get_operator_list(), user) >= 0) || (channel.get_mode()['t'] == false && topic == "")) // (Channel is topic privileged and user is an operator) or (channel is not topic privileged, but a topic was not provided)
                 {
                     if (topic != "" && topic.size() <= 50 && topic != channel.get_channel_topic() && channel.find_user(channel.get_operator_list(), user.getNickname()) >= 0) // New topic is not too long and is different from the current topic
                     {
@@ -312,7 +329,7 @@ int Commands::topic(Channel channel, User user, string topic)
                             send(user.getFd(), (channel.get_channel_name() + " topic: " + channel.get_channel_topic() + "\n").c_str(), channel.get_channel_name().size() + channel.get_channel_topic().size() + 11, 0); // Send current topic to user
                         else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + RPL_NOTOPIC_M).c_str(), RPL_NOTOPIC_C); return RPL_NOTOPIC_C; } // No topic set (RPL_NOTOPIC
                     }
-                    else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + RPL_NOTOPIC_M).c_str(), RPL_NOTOPIC_C); return RPL_NOTOPIC_C; } 
+                    else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + RPL_NOTOPIC_M).c_str(), RPL_NOTOPIC_C); return RPL_NOTOPIC_C; }
                 }
                 else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_CHANOPRIVSNEEDED_M).c_str(), ERR_CHANOPRIVSNEEDED_C); return ERR_CHANOPRIVSNEEDED_C; } // User is not an operator
             }
@@ -337,9 +354,9 @@ int Commands::topic(Channel channel, User user, string topic)
  * @param state State of the mode (+ or -) | If user inputs invalid state, pass it anyways
  * @param argument Argument for the mode | set to "" if not provided
  */
-int Commands::mode(Channel channel, User user, char mode, char state, string argument)
+int Commands::mode(Channel &channel, User &user, char mode, char state, string argument)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
         return -1;
@@ -367,9 +384,9 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
     {
         if (channel.channel_exists(channel) == true) // Channel exists
         {
-            if (channel.find_user(channel.get_users(), user) == true) // User is in channel
+            if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
-                if (channel.find_user(channel.get_operator_list(), user) == true) // User is an operator
+                if (channel.find_user(channel.get_operator_list(), user) >= 0) // User is an operator
                 {
                     if (channel.get_mode()[mode] != state) // Channel state is different from what is already set
                     {
@@ -433,7 +450,7 @@ int Commands::mode(Channel channel, User user, char mode, char state, string arg
  * @param user User sending the notice
  * @param message Message to be sent as a vector of strings
  */
-int Commands::notice(User user, vector<string> message)
+int Commands::notice(User &user, vector<string> message)
 {
     if (message.size() == 0)
     {
@@ -468,7 +485,7 @@ int Commands::notice(User user, vector<string> message)
  * @param user User sending the notice
  * @param message Message to be sent as a vector of strings separated by spaces, so no spaces in any element
  */
-int Commands::notice(string receiver, User user, vector<string> message)
+int Commands::notice(string receiver, User &user, vector<string> message)
 {
     if (message.size() == 0)
     {
@@ -507,9 +524,9 @@ int Commands::notice(string receiver, User user, vector<string> message)
  * @param channel Channel to be left | If the channel doesn't exist, pass Channel("<channel_name">, false)
  * @param user User who is leaving the channel
  */
-int Commands::part(Channel channel, User user)
+int Commands::part(Channel &channel, User &user)
 {
-    if (channel.get_channel_name() == "" || channel.get_channel_name()[0] != '#' || channel.get_channel_name()[0] != '&')
+    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
     {
         send(user.getFd(), "Usage: /part #<channel>\n", 24, 0); // Rewrite error message
         return -1;
@@ -552,7 +569,7 @@ int Commands::part(Channel channel, User user)
  * @param user 
  * @return int
  */
-int Commands::nick(string newNick, User user)
+int Commands::nick(string newNick, User &user)
 {
     if (Utils::nickname_exists(newNick) == true)
     {
@@ -560,7 +577,7 @@ int Commands::nick(string newNick, User user)
         return -1;
     }
 
-	Server::nick_flag = 1;
+	user.nick_flag = 1;
     user.setNickname(newNick);
     return 0;
 }
@@ -573,7 +590,7 @@ int Commands::nick(string newNick, User user)
  * @param user 
  * @return int 
  */
-int Commands::user(string newUser, User user)
+int Commands::user(string newUser, User &user)
 {
     if (Utils::username_exists(newUser) == true)
     {
@@ -581,7 +598,7 @@ int Commands::user(string newUser, User user)
         return -1;
     }
 
-	Server::user_flag = 1;
+	user.user_flag = 1;
     user.setUsername(newUser);
     return 0;
 }
@@ -593,11 +610,12 @@ int Commands::user(string newUser, User user)
  * @param pass Server password as a string
  * @return int 0 on correct pass | If pass incorrect, disconnect client
  */
-int	Commands::pass(User user, string pass)
+int	Commands::pass(User &user, string pass)
 {
-	if (pass == Server::pass)
-		Server::pass_flag = 1;
-	else { Utils::sendErrorMessage(user.getFd(), ("Password incorrect\n").c_str(), 462), return -1; }
+	string	message = "Password incorrect\n";
+	if (pass == Server::_password)
+		user.pass_flag = 1;
+	else { Utils::sendErrorMessage(user.getFd(), message.c_str(), 462); return -1; }
 	
 	return 0;
 }

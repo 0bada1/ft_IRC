@@ -2,10 +2,11 @@
 CXX := c++
 
 # Compiler flags
-CXXFLAGS := -Wall -Wextra -Werror -std=c++98 #-g3 -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address
 
 # Source files
 SRCS := main.cpp \
+		Parse.cpp	\
 		Server.cpp \
 		Channel.cpp \
 		Commands.cpp \
@@ -20,6 +21,15 @@ OBJS := $(SRCS:.c=.o)
 NAME := ircserv
 
 all: $(NAME)
+
+irssi: rmirssi
+	docker run -it --name irssi-container -e TERM -u $(id -u):$(id -g) \
+	--log-driver=none \
+    -v ${HOME}/.irssi:/home/user/.irssi:ro \
+    irssi
+
+rmirssi:
+	docker rm -f irssi-container 2>/dev/null
 
 # Build NAME
 $(NAME): $(OBJS)

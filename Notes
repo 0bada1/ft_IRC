@@ -76,3 +76,104 @@ _______________________________________________________________
 ***RFC 2810 NOTES***
 
 ***RFC 2812 NOTES***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TRASH CODE
+				for (std::vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
+				{
+					it_u = it->user_index(Server::current_fd);
+					it_o = it->operator_index(Server::current_fd);
+					if (it_u != it->get_users().end())
+						it->get_users().erase(it_u);
+					if (it_o != it->get_operator_list().end())
+					{
+						it->get_operator_list().erase(it_o);
+						it_o = it->get_users().begin();
+						if (it_o != it->get_users().end() && it->get_operator_list().size() == 0)
+							it->get_operator_list().push_back(*it_o);
+					}
+					it_i = it->invite_index(Server::current_fd);
+					if (it_i != it->get_invite_list().end())
+						it->get_invite_list().erase(it_i);
+				}
+
+
+
+
+
+
+
+
+
+				                for (size_t k = 0; k < Server::channels_.size(); k++)
+				{
+					user_index = Server::channels_[k].user_index(Server::current_fd);
+					operator_index = Server::channels_[k].operator_index(Server::current_fd);
+					// cout << "SEGFAULT: " << user_index << endl;
+					// Utils::printChannelList();
+					// cout << "User " << "0" << " " << Server::channels_[0].get_users()[0].getNickname() << endl;
+					// cout << Server::channels_[k].find_user(Server::channels_[k].get_users(), Server::channels_[k].get_users()[user_index]) << endl;					if (user_index < Server::channels_[k].get_users().size() && static_cast<int>(user_index) != -1)
+						Server::channels_[k].get_users().erase(Server::channels_[k].get_users().begin() + user_index);
+					if (operator_index != Server::channels_[k].get_operator_list().size())
+					{
+						Server::channels_[k].get_operator_list().erase(Server::channels_[k].get_operator_list().begin() + operator_index);
+						it_o = Server::channels_[k].get_users().begin();
+						if (operator_index != Server::channels_[k].get_users().size() && Server::channels_[k].get_operator_list().size() == 0)
+							Server::channels_[k].get_operator_list().push_back(*it_o);
+					}
+					invite_index = Server::channels_[k].invite_index(Server::current_fd);
+					if (invite_index != Server::channels_[k].get_invite_list().size())
+						Server::channels_[k].get_invite_list().erase(Server::channels_[k].get_invite_list().begin() + invite_index);
+				}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				for (std::vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
+				{
+					it_u = it->user_index(Server::current_fd);
+					it_o = it->operator_index(Server::current_fd);
+					if (it_u != it->get_users().end())
+						it->get_users().erase(it_u);
+					if (it_o != it->get_operator_list().end())
+					{
+						it->get_operator_list().erase(it_o);
+						it_o = it->get_users().begin();
+						if (it_o != it->get_users().end() && it->get_operator_list().size() == 0)
+							it->get_operator_list().push_back(*it_o);
+					}
+					it_i = it->invite_index(Server::current_fd);
+					if (it_i != it->get_invite_list().end())
+						it->get_invite_list().erase(it_i);
+					t_it = it;
+					if (it->get_users().size() == 0)
+					{
+						cout << "DELETING CHANNEL" << endl;
+						t_it->removeChannel(t_it->get_channel_name());
+					}
+				}

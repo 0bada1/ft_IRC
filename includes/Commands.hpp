@@ -20,23 +20,22 @@ class Commands
 
 		// ITERATORS
 		vector<Channel>::iterator	channel_it;
-		vector<User>::iterator		user_it;
 
         // METHODS
-        static int join(Channel channel, User user, string key);
-        static int kick(Channel channel, User user, string kicked_user, string reason);
-        static int invite(Channel channel, User user, string invited_user);
-        static int privmsg(Channel channel, User user, vector<string> message);
-        static int privmsg(string receiver, User user, vector<string> message);
-        static int notice(User user, vector<string> message);
-        static int notice(string receiver, User user, vector<string> message);
-        static int topic(Channel channel, User user, string topic);
-        static int mode (Channel channel, User user, char mode, char state, string argument);
-        static int part(Channel channel, User user);
+        static int join(Channel &channel, User &user, string key);
+        static int kick(Channel &channel, User &user, string kicked_user, string reason);
+        static int invite(Channel &channel, User &user, string invited_user);
+        static int privmsg(Channel &channel, User &user, vector<string> message);
+        static int privmsg(string receiver, User &user, vector<string> message);
+        static int notice(User &user, vector<string> message);
+        static int notice(string receiver, User &user, vector<string> message);
+        static int topic(Channel &channel, User &user, string topic);
+        static int mode (Channel &channel, User &user, char mode, char state, string argument);
+        static int part(Channel &channel, User &user);
 
-        static int nick(string newNick, User user);
-        static int user(string newUser, User user);
-		static int pass(User user, string pass);
+        static int nick(string newNick, User &user);
+        static int user(string newUser, User &user);
+		static int pass(User &user, string pass);
 
         static int displayChannelIntro(User user);
         

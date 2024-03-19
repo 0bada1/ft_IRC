@@ -14,10 +14,15 @@ class Channel;
 
 namespace Utils {
 
+	// ITERATORS
+	// extern vector<Channel>::iterator it_channel;
+
 	// Check if a user exists 
-	User	find_User(User nickname);
-	User	find_User(string nickname);
-	Channel	find_Channel(string channel);
+	User	find_User(const User &nickname);
+	User	find_User(const string &nickname);
+	bool	channel_exists(Channel channel);
+	bool	channel_exists(string channel);
+	Channel	&find_Channel(string channel);
 	int		find_Channel(Channel channel);
 	bool	username_exists(string username);
 	bool	nickname_exists(string nickname);
@@ -31,6 +36,9 @@ namespace Utils {
 	User &find(int fd);
 	// void closeThis(User &user);
 	void	removeClient(User &user);
+
+	void	printChannelList();
+	void	printUserList();
 }
 
 # endif // UTILS_HPP

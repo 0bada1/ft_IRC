@@ -5,19 +5,6 @@
 using namespace std;
 
 // CONSTRUCOTS
-/* Channel::Channel()
-{
-	this->max_users_ = -1; // Max users are initialially unlimited, so it is set to -1
-	this->channel_name_ = "";
-	this->channel_topic_ = "";
-	this->password_ = "";
-	this->type_ = '#';
-	this->mode_['i'] = false;
-	this->mode_['t'] = false;
-	this->mode_['k'] = false;
-	this->mode_['o'] = false;
-	this->mode_['l'] = false;
-} */
 
 /**
  * @brief Construct a new Channel:: Channel object
@@ -27,6 +14,7 @@ using namespace std;
  */
 Channel::Channel(string channel_name, bool channelExists)
 {
+	(void)channelExists;
 	this->max_users_ = -1; // Max users are initialially unlimited, so it is set to -1
 	this->channel_name_ = channel_name;
 	this->channel_topic_ = "";
@@ -37,8 +25,8 @@ Channel::Channel(string channel_name, bool channelExists)
 	this->mode_['k'] = false; // Password
 	this->mode_['o'] = false; // Operator privelege
 	this->mode_['l'] = false; // User limit
-	if (channelExists == true)
-		Server::channels_.push_back(*this);
+	// if (channelExists == true)
+	// 	Server::channels_.push_back(*this);
 }
 
 Channel::~Channel()
@@ -57,11 +45,11 @@ string	Channel::get_channel_name() const { return this->channel_name_; }
 string	Channel::get_channel_topic() const { return this->channel_topic_; }
 string	Channel::get_password() const { return this->password_; }
 
-vector<User>	Channel::get_users() const { return this->users_; }
-vector<User>	Channel::get_operator_list() const { return this->operator_list_; }
-vector<User>	Channel::get_invite_list() const { return this->invite_list_; }
-vector<User>	Channel::get_ban_list() const { return this->ban_list_; }
-map<char, bool>	Channel::get_mode() const { return this->mode_; }
+vector<User>	&Channel::get_users() { return this->users_; }
+vector<User>	&Channel::get_operator_list() { return this->operator_list_; }
+vector<User>	&Channel::get_invite_list() { return this->invite_list_; }
+vector<User>	&Channel::get_ban_list() { return this->ban_list_; }
+map<char, bool>	&Channel::get_mode() { return this->mode_; }
 
 // SETTERS
 void	Channel::set_channel_topic(string topic) { this->channel_topic_ = topic; }
@@ -152,101 +140,134 @@ int		Channel::find_user(vector<User> users, string user)
  * @brief 
  * 
  * @param fd 
- * @return vector<User>::iterator 
+ * @return size_t 
  */
-vector<User>::iterator	Channel::user_index(int fd)
+// size_t	Channel::user_index(int fd)
+// {
+// 	size_t i = 0;
+// 	for (; i < this->get_users().size(); i++)
+// 	{
+// 		if (this->get_users()[i].getFd() == fd)
+// 			return i;
+// 	}
+// 	return -1;
+// }
+
+// /**
+//  * @brief 
+//  * 
+//  * @param fd 
+//  * @return size_t
+//  */
+// size_t	Channel::operator_index(int fd)
+// {
+// 	size_t i = 0;
+// 	for (; i < this->get_operator_list().size(); i++)
+// 	{
+// 		if (this->get_operator_list()[i].getFd() == fd)
+// 			return i;
+// 	}
+// 	return -1;
+// }
+
+// /**
+//  * @brief 
+//  * 
+//  * @param fd 
+//  * @return size_t
+//  */
+// size_t	Channel::invite_index(int fd)
+// {
+// 	size_t i = 0;
+// 	for (; i < this->get_invite_list().size(); i++)
+// 	{
+// 		if (this->get_invite_list()[i].getFd() == fd)
+// 			return i;
+// 	}
+// 	return -1;
+// }
+
+std::vector<User>::iterator &Channel::user_index(int fd)
 {
-	this->user_it = this->users_.begin();
-	for (; this->user_it != this->users_.end(); this->user_it++)
-	{
-		if (this->user_it->getFd() == fd)
-			return this->user_it;
+	if (this->users_.size() > 0) {
+
+		for (this->user_it = this->users_.begin(); this->user_it != this->users_.end(); user_it++)
+		{
+			if (user_it->getFd() == fd)
+				return (user_it);
+		}
 	}
-	return this->user_it;
+	return (user_it);
 }
 
-/**
- * @brief 
- * 
- * @param fd 
- * @return vector<User>::iterator 
- */
-vector<User>::iterator	Channel::operator_index(int fd)
+std::vector<User>::iterator &Channel::operator_index(int fd)
 {
-	this->operator_it = this->get_operator_list().begin();
-	for (; this->operator_it != this->get_operator_list().end(); this->operator_it++)
+	for (this->operator_it = this->operator_list_.begin(); this->operator_it != this->operator_list_.end(); operator_it++)
 	{
 		if (this->operator_it->getFd() == fd)
-			return this->operator_it;
+			return (operator_it);
 	}
-	return this->operator_it;
+	return (operator_it);
 }
 
-/**
- * @brief 
- * 
- * @param fd 
- * @return vector<User>::iterator 
- */
-vector<User>::iterator	Channel::invite_index(int fd)
+std::vector<User>::iterator &Channel::invite_index(int fd)
 {
-	this->invite_it = this->get_invite_list().begin();
-	for (; this->invite_it != this->get_operator_list().end(); this->invite_it++)
+	for (this->invite_it = this->invite_list_.begin(); this->invite_it != this->invite_list_.end(); invite_it++)
 	{
 		if (this->invite_it->getFd() == fd)
-			return this->invite_it;
+			return (invite_it);
 	}
-	return this->invite_it;
+	return (invite_it);
 }
 
 /** @brief Add a user to a channel
  * 
  * @param user User to be added
 */
-void	Channel::addUser(User &user) { this->users_.push_back(user); }
+void	Channel::addUser(const User &user) { this->users_.push_back(user); }
 
 /** @brief Add an operator to a channel
  * 
  * @param user User to be added
 */
-void	Channel::addOperator(User &user) { this->operator_list_.push_back(user); }
+void	Channel::addOperator(const User &user) { this->operator_list_.push_back(user); }
 
 /** @brief Add an invite to a channel
  * 
  * @param user User to be added
 */
-void	Channel::addInvite(User &user) { this->invite_list_.push_back(user); }
+void	Channel::addInvite(const User &user) { this->invite_list_.push_back(user); }
 
 /** @brief Add a ban to a user from the channel
  * 
  * @param user User to be added
 */
-void	Channel::addBan(User &user) { this->ban_list_.push_back(user); }
+void	Channel::addBan(const User &user) { this->ban_list_.push_back(user); }
 
 /** @brief Remove a user from a channel
  * 
  * @param user User to be removed
 */
-void	Channel::removeUser(User &user) { this->users_.erase(this->users_.begin() + find_user(this->users_, user)); }
+void	Channel::removeUser(const User &user) { this->users_.erase(this->users_.begin() + find_user(this->users_, user)); }
 
 /** @brief Remove an operator from a channel
  * 
  * @param user User to be removed
 */
-void	Channel::removeOperator(User &user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
+void	Channel::removeOperator(const User &user) { this->operator_list_.erase(this->operator_list_.begin() + find_user(this->operator_list_, user)); }
 
 /**
  * @brief Remove an invitee from a channel's invite list
  * 
  * @param user User to be removed
  */
-void	Channel::removeInvite(User &user) { this->invite_list_.erase(this->invite_list_.begin() + find_user(this->invite_list_, user)); }
+void	Channel::removeInvite(const User &user) { this->invite_list_.erase(this->invite_list_.begin() + find_user(this->invite_list_, user)); }
 
 /** @brief Remove a banned user from a channel's banned list
  * 
  * @param user User to be banned
 */
-void	Channel::removeBan(User &user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
+void	Channel::removeBan(const User &user) { this->ban_list_.erase(this->ban_list_.begin() + find_user(this->ban_list_, user)); }
 
 /**
  * @brief Remove a channel from Server::channels_ | Normally called when no users are left on channel

@@ -71,8 +71,6 @@ public:
 	static void run(void);
 	static void acceptConnection(void);
 	static void handleClientMessages(void);
-	static void showUsers(void);
-	static void showChannels(void);
 	static std::string getPassword(void);
 };
 

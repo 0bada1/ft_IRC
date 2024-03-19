@@ -40,7 +40,7 @@ void	Utils::sendErrorMessage(int fd, const string& message, const int key) {
 	send(fd, errorMsg.c_str(), strlen(errorMsg.c_str()), 0);
 }
 
-User	Utils::find_User(string nickname)
+User	Utils::find_User(const string &nickname)
 {
 	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
@@ -50,7 +50,7 @@ User	Utils::find_User(string nickname)
 	return User();
 }
 
-User	Utils::find_User(User nickname)
+User	Utils::find_User(const User &nickname)
 {
 	for (size_t i = 0; i < Server::users_.size(); i++)
 	{
@@ -60,14 +60,20 @@ User	Utils::find_User(User nickname)
 	return User();
 }
 
-Channel	Utils::find_Channel(string channel)
+/**
+ * @brief Always check if channel exists before using this funcion
+ * 
+ * @param channel 
+ * @return Channel& 
+ */
+Channel	&Utils::find_Channel(string channel)
 {
 	for (size_t i = 0; i < Server::channels_.size(); i++)
 	{
 		if (Server::channels_[i].get_channel_name() == channel)
 			return Server::channels_[i];
 	}
-	return Channel("", false);
+	return Server::channels_[0];
 }
 
 int	Utils::find_Channel(Channel channel)
@@ -78,6 +84,35 @@ int	Utils::find_Channel(Channel channel)
 			return i;
 	}
 	return -1;
+}
+
+/** @brief Check if a channel exists
+ * 
+ * @param channel Channel to be checked
+*/
+bool	Utils::channel_exists(Channel channel)
+{
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+	{
+		if (Server::channels_[i] == channel)
+			return true;
+	}
+	return false;
+}
+
+/** @brief Check if a channel exists
+ * 
+ * @param channel string to be checked
+ * @return true if channel exists, false otherwise
+*/
+bool	Utils::channel_exists(string channel)
+{
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+	{
+		if (Server::channels_[i].get_channel_name() == channel)
+			return true;
+	}
+	return false;
 }
 
 bool	Utils::username_exists(string username)
@@ -108,8 +143,8 @@ void Utils::signalHandler(int signum) {
 
     cout << RED << "Interrupt signal (" << signum << ") received." << RESET << "\n";
 
-    for(vector<int>::iterator it = Server::_fds.begin(); it != Server::_fds.end(); ++it) {
-            close(*it);
+    for(vector<int>::iterator it_i = Server::_fds.begin(); it_i != Server::_fds.end(); ++it_i) {
+            close(*it_i);
     }
 	shutdown(Server::serverSocket, SHUT_RDWR);
     close(Server::serverSocket);
@@ -143,20 +178,40 @@ vector<string> Utils::split(const string str) {
  */
 void	Utils::removeClient(User &user) // NOT DONE
 {
+	vector<Channel> userChannels = user.getChannels();
+	vector<Channel>::iterator it_channel = userChannels.begin();
+
 	Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user.getFd()));
 	user.closeFd();
-	for (vector<Channel>::iterator it = user.getChannels().begin(); it != user.getChannels().end(); it++)
+	for (; it_channel != user.getChannels().end(); it_channel++)
 	{
-		if (it->get_users().size() == 1)
+		if (it_channel->get_users().size() == 1)
 		{
-			if (it->find_user(it->get_operator_list(), user) != -1) // User is operator in channel
-				it->get_operator_list().erase(it->get_operator_list().begin()); // Remove user from operator list
-			if (it->find_user(it->get_invite_list(), user) != -1) // User is invited to channel
-				it->get_invite_list().erase(it->get_invite_list().begin()); // Remove user from invite list
-			it->removeChannel(*it); // Delete channel from Server::channels_ and user's list of channels
+			if (it_channel->find_user(it_channel->get_operator_list(), user) != -1) // User is operator in channel
+				it_channel->get_operator_list().erase(it_channel->get_operator_list().begin()); // Remove user from operator list
+			if (it_channel->find_user(it_channel->get_invite_list(), user) != -1) // User is invited to channel
+				it_channel->get_invite_list().erase(it_channel->get_invite_list().begin()); // Remove user from invite list
+			it_channel->removeChannel(it_channel->get_channel_name()); // Delete channel from Server::channels_ and user's list of channels
 		}
 	}
 	Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
+}
+
+void	Utils::printChannelList()
+{
+	for (size_t i = 0; i < Server::channels_.size(); i++)
+	{
+		cout << Server::channels_[i].get_channel_name() << endl;
+	}
+}
+
+void	Utils::printUserList()
+{
+	for (size_t i = 0; i < Server::users_.size(); i++)
+	{
+		cout << "utilNICK -> " << Server::users_[i].getNickname() << endl;
+		cout << "utilFD -> " << Server::users_[i].getFd() << endl;
+	}
 }
 
 // void Utils::closeThis(User &user)
@@ -168,22 +223,22 @@ void	Utils::removeClient(User &user) // NOT DONE
 
 //     Server::_fds.erase(find(Server::_fds.begin(), Server::_fds.end(), user._fd));	
 //     Server::users_.erase(find(Server::users_.begin(), Server::users_.end(), user));
-// 	for (vector<Channel>::iterator it = Server::channels_.begin(); it != Server::channels_.end(); it++)
+// 	for (vector<Channel>::iterator iterator = Server::channels_.begin(); iterator != Server::channels_.end(); iterator++)
 // 	{
-// 		it_u = it->user_in_chan(Server::current_fd);
-// 		it_o = it->op_in_chan(Server::current_fd);
-// 		if (it_u != it->users.end())
-// 			it->users.erase(it_u);
-// 		if (it_o != it->operators.end())
+// 		it_u = iterator->user_in_chan(Server::current_fd);
+// 		it_o = iterator->op_in_chan(Server::current_fd);
+// 		if (it_u != iterator->users.end())
+// 			iterator->users.erase(it_u);
+// 		if (it_o != iterator->operators.end())
 // 		{
-// 			it->operators.erase(it_o);
-// 			it_o = it->users.begin();
-// 			if (it_o != it->users.end() && it->operators.size() == 0)
-// 				it->operators.push_back(*it_o);
+// 			iterator->operators.erase(it_o);
+// 			it_o = iterator->users.begin();
+// 			if (it_o != iterator->users.end() && iterator->operators.size() == 0)
+// 				iterator->operators.push_back(*it_o);
 // 		}
-// 		it_i = it->inv_in_chan(Server::current_fd);
-// 		if (it_i != it->invites.end())
-// 			it->invites.erase(it_i);
+// 		it_i = iterator->inv_in_chan(Server::current_fd);
+// 		if (it_i != iterator->invites.end())
+// 			iterator->invites.erase(it_i);
 // 	}
 // }
 
@@ -302,9 +357,9 @@ void	Utils::removeClient(User &user) // NOT DONE
 // }
 
 User &Utils::find(int fd) {
-	for(vector<User>::iterator it = Server::users_.begin(); it != Server::users_.end(); ++it) {
-        if (it->getFd() == fd) {
-			return *it;
+	for(vector<User>::iterator it_u = Server::users_.begin(); it_u != Server::users_.end(); ++it_u) {
+        if (it_u->getFd() == fd) {
+			return *it_u;
         }
     }
 	throw Server::ServerException("Utils::find: User not found");

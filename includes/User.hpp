@@ -36,6 +36,12 @@ class User
         bool    user_exists(User nickname);
 		void	execute(string cmd, User *user);
 
+		bool	user_options(User *user, std::vector<std::string> splitmsg); // CHANGE
+		int		authorise(User *user, std::string cmd); // CHANGE
+		bool	parse_cmd(std::string str); // CHANGE
+		void	change_user(User *user, std::vector<std::string> splitmsg); // CHANGE
+
+
         // GETTERS
         vector<Channel> getChannels() const;
 		string			getInput() const;
@@ -53,6 +59,22 @@ class User
         void    addChannel(Channel channel);
         void    removeChannel(Channel channel);
         void    closeFd();
+
+		// FLAGS
+		int	nick_flag;
+		int	user_flag;
+		int	pass_flag;
+		bool	isAuth; // change
+		vector<string> _cmd; // CHANGE
+		string	pass; // CHANGE
+		int		pass_issue; // CHANGE
+		bool	change_flag; // CHANGE
+		int		alr_reg; //change
+
+		// ITERATORS
+		std::vector<User>::iterator it_u;
+		std::vector<User>::iterator it_i;
+
 
     private:
         int     fd_;				// File descriptor of client/user
