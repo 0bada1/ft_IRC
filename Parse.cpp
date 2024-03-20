@@ -125,6 +125,11 @@ void    handleModeCommand(std::vector<std::string>& parameters,User &currentUser
         Utils::sendErrorMessage(currentUser.getFd(), ERR_NEEDMOREPARAMS_M, ERR_NEEDMOREPARAMS_C);
 		return ;
     }
+	if (parameters[0] == "" || (parameters[0][0] != '#' && parameters[0][0] != '&'))
+    {
+        Utils::sendErrorMessage(currentUser.getFd(), (parameters[0] + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
+        return ;
+    }
     std::string mode_arg;
     if(parameters.size() >= 3 && parameters[2].size() > 0)
         mode_arg = parameters[2];
@@ -234,7 +239,7 @@ void parse(User &currentUser, std::string input)
         std::vector<std::string> parameters;
         iss >> command; 
         std::string param;
-		std::cout << command << std::endl;
+		// std::cout << input << std::endl; // print incoming command from client
         if (currentUser.user_flag == 1 && currentUser.nick_flag == 1 && currentUser.pass_flag == 1)
             currentUser.setRegistered(true);
         while(iss >> param)
@@ -263,17 +268,20 @@ void parse(User &currentUser, std::string input)
                 handleTopicCommand(parameters, currentUser);
             else if (command == "NOTICE")
                 handleNoticeCommand(parameters, currentUser);
+			else if (command == "PING")
+				send(currentUser.getFd(), "PONG\n", 5, 0);
             else if(command == "CAP")
                 handleCapCommand(parameters, currentUser);
             else
             {
-                Utils::sendErrorMessage(currentUser.getFd(), "421 :Unknown command", 421);
+				if (command != "" || !command.empty())
+                	Utils::sendErrorMessage(currentUser.getFd(), " :Unknown command\n", 421);
                 return;
             }
         }
         else if(currentUser.isRegistered() == false)
-            Utils::sendErrorMessage(currentUser.getFd(), "451 :You have not registered", 451);
+            Utils::sendErrorMessage(currentUser.getFd(), " :You have not registered\n", 451);
         else
-            Utils::sendErrorMessage(currentUser.getFd(), "421 :Unknown command", 421);
+            Utils::sendErrorMessage(currentUser.getFd(), " :Unknown command\n", 421);
 }
 /*###################################################################*/

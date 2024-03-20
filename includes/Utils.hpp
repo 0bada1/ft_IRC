@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include "Server.hpp"
 
 using namespace std;
@@ -36,6 +37,8 @@ namespace Utils {
 	User &find(int fd);
 	// void closeThis(User &user);
 	void	removeClient(User &user);
+	bool	profanitiesBot(vector<string> messages);
+	string	concatenateStrings(const vector<string>& vec);
 
 	void	printChannelList();
 	void	printUserList();

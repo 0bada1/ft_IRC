@@ -174,7 +174,10 @@ int User::authorise(User *user, std::string cmd)
 		{
 			std::string wlcmMsg = ":irc 001 " + user->nickname_ + " :Welcome to FT_IRC, " + user->username_ + "@" + Server::_hostName + "\n"
 								  ":irc 002 " + user->nickname_ + " :Host is " + Server::_hostName + ", running version 1.0\n"
-								  ":irc 003 " + user->nickname_ + " :Created in 42 labs at July\n";
+								  ":irc 003 " + user->nickname_ + " :Created in 42 labs at July\n"
+								  ":irc 004 " + user->nickname_ + " :irc iotkl\n"
+								  ":irc 005 " + user->nickname_ + " :CHANMODES=,k,l,it\n"
+								  ":irc 422 " + user->nickname_ + " :MOTD File is missing\n";
 			send(user->fd_, wlcmMsg.c_str(), strlen(wlcmMsg.c_str()), 0);
 			if(pass == Server::getPassword()){
 				user->isAuth = true;

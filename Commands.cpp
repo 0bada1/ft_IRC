@@ -227,9 +227,9 @@ int Commands::privmsg(Channel &channel, User &user, vector<string> message)
         Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
         return ERR_NOSUCHCHANNEL_C;
     }
-	cout << "I AM HERE" << endl;
-	for (size_t i = 0; i < channel.get_users().size(); i++)
-		cout << "PRIVMSG: " << channel.get_users()[i].getNickname() << endl;
+	// cout << "I AM HERE" << endl;
+	// for (size_t i = 0; i < channel.get_users().size(); i++)
+	// 	cout << "PRIVMSG: " << channel.get_users()[i].getNickname() << endl;
 
     string  msg;
     if (user.isRegistered() == true)
@@ -238,16 +238,27 @@ int Commands::privmsg(Channel &channel, User &user, vector<string> message)
         {
             if (channel.find_user(channel.get_users(), user) >= 0) // User is in channel
             {
+
+
 				for (size_t i = 0; i < channel.get_users().size(); i++)
                 {
-                    msg = user.getNickname() + ": ";
-                    send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
-                    for (size_t j = 0; j < message.size(); j++) // loop over all strings in message
-                    {
-                        msg = message[j] + " ";
-                        send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
-                    }
-                    send(channel.get_users()[i].getFd(), "\n", 2, 0); // Send new line to reciever
+					if (Utils::profanitiesBot(message) == false)
+					{
+						// msg = user.getNickname() + ": ";
+						msg = ":" + user.getNickname() + "!~" + user.getUsername() + "@" + "example.com" + " PRIVMSG " + channel.get_channel_name() + ":" + Utils::concatenateStrings(message) + "\n";
+						send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+						// for (size_t j = 0; j < message.size(); j++) // loop over all strings in message
+						// {
+						// 	msg = message[j] + " ";
+						// 	send(channel.get_users()[i].getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+						// }
+						// send(channel.get_users()[i].getFd(), "\n", 2, 0); // Send new line to reciever
+					}
+					else { send(user.getFd(), "No cursing\n", 11, 0); return ERR_NEEDMOREPARAMS_C; }
+
+
+
+
                 }
             }
             else { Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOTONCHANNEL_M).c_str(), ERR_NOTONCHANNEL_C); return ERR_NOTONCHANNEL_C; } // User is not in channel
@@ -274,14 +285,19 @@ int Commands::privmsg(string receiver, User &user, vector<string> message)
         {
             if (Utils::find_User(receiver).getFd() != user.getFd()) // User is not sending a message to themselves
             {
-                string  msg = user.getNickname() + ": ";
-                send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
-                for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
-                {
-                    msg = message[i] + " ";
-                    send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
-                }
-                send(Utils::find_User(receiver).getFd(), "\n", 2, 0); // Send new line to reciever
+				if (Utils::profanitiesBot(message) == false)
+				{
+					// string  msg = user.getNickname() + ": ";
+					string msg = ":" + user.getNickname() + "!~" + user.getUsername() + "@" + "example.com" + " PRIVMSG " + Utils::find_User(receiver).getNickname() + ":";
+					send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send sender's nickname to reciever
+					for (size_t i = 0; i < message.size(); i++) // loop over all strings in message
+					{
+						msg = message[i] + " ";
+						send(Utils::find_User(receiver).getFd(), msg.c_str(), strlen(msg.c_str()), 0); // Send message to reciever
+					}
+					send(Utils::find_User(receiver).getFd(), "\n", 2, 0); // Send new line to reciever
+				}
+				else { send(user.getFd(), "No cursing\n", 11, 0); return -1; }
             }
             else { Utils::sendErrorMessage(user.getFd(), "You cannot message yourself\n", -1); return -1; } // User is sending a message to themselves
         }
@@ -356,12 +372,12 @@ int Commands::topic(Channel &channel, User &user, string topic)
  */
 int Commands::mode(Channel &channel, User &user, char mode, char state, string argument)
 {
-    if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
-    {
-        Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
-        return -1;
-    }
-    else if (state != '+' && state != '-')
+    // if (channel.get_channel_name() == "" || (channel.get_channel_name()[0] != '#' && channel.get_channel_name()[0] != '&'))
+    // {
+    //     Utils::sendErrorMessage(user.getFd(), (channel.get_channel_name() + ERR_NOSUCHCHANNEL_M).c_str(), ERR_NOSUCHCHANNEL_C);
+    //     return -1;
+    // }
+    if (state != '+' && state != '-')
     {
 		stringstream	ss;
 		ss << state;

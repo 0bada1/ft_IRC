@@ -364,3 +364,45 @@ User &Utils::find(int fd) {
     }
 	throw Server::ServerException("Utils::find: User not found");
 }
+
+// BONUS
+bool	Utils::profanitiesBot(vector<string> messages)
+{
+	ifstream	profanities_file;
+	vector<string>		curses;
+
+	profanities_file.open("Profanities.txt");
+	if (!profanities_file)
+	{
+        profanities_file.close();
+		return false;
+	}
+	
+	string curse;
+    for (int i = 0; getline(profanities_file, curse); i++)
+    {
+        curses.push_back(curse);
+		// cout << "BOT!" << endl;
+		// cout << curses[i] << endl;
+    }
+	profanities_file.close();
+	
+	for (size_t i = 0; i < messages.size(); i++)
+	{
+		for (size_t j = 0; j < curses.size(); j++)
+		{
+			// cout << "Comparing: '" << messages[i] << "' with '" << curses[j] << "'" << endl;
+			if (messages[i] == curses[j] || messages[i] == (":" + curses[j]))
+				return true;
+		}
+	}
+	return false;
+}
+
+string	Utils::concatenateStrings(const vector<string>& vec) {
+    string result;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        result += vec[i] + " "; // Concatenate the current string to the result
+    }
+    return result;
+}
